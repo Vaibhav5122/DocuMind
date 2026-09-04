@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
   PORT: z.string().optional(),
+  MONGO_URI: z.string(),
 });
 
 function parsedEnvSchema(env: NodeJS.ProcessEnv) {

@@ -5,7 +5,7 @@ import { expressApplication } from "./app/app.js";
 
 (async function main() {
   try {
-    const nodeServer = createServer(expressApplication());
+    const nodeServer = createServer(await expressApplication());
     const PORT = envZod.PORT ? +envZod.PORT : 8080;
 
     nodeServer.listen(PORT, "0.0.0.0", () => {
