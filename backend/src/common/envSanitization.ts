@@ -4,6 +4,8 @@ const envSchema = z.object({
   PORT: z.string().optional(),
   MONGO_URI: z.string(),
   BETTER_AUTH_URL: z.string().optional(),
+  GOOGLE_CLIENT_ID: z.string(),
+  GOOGLE_CLIENT_SECRET: z.string(),
 });
 
 function parsedEnvSchema(env: NodeJS.ProcessEnv) {
