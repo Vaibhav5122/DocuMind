@@ -3,6 +3,7 @@ import { z } from "zod";
 const envSchema = z.object({
   PORT: z.string().optional(),
   MONGO_URI: z.string(),
+  BETTER_AUTH_URL: z.string().optional(),
 });
 
 function parsedEnvSchema(env: NodeJS.ProcessEnv) {
