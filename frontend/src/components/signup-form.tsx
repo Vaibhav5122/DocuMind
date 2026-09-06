@@ -22,12 +22,14 @@ import {
 } from "@/lib/validations/authValidation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
   const { mutate: googleLogin, isPending: googlePending } = useGoogleLogin();
   const { mutate: signup, isPending } = useSignUp();
@@ -59,7 +61,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
               onSuccess: () => {
                 reset();
                 toast.success(`Welcome ${data.name}`);
-                router.push("/dashboard");
+                router.push(callbackUrl);
               },
             }),
           )}
@@ -72,7 +74,8 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
                 disabled={googlePending}
                 onClick={() =>
                   googleLogin({
-                    callbackURL: "http://localhost:3000/dashboard",
+                    // callbackURL: "http://localhost:3000/dashboard",
+                    callbackURL: `${window.location.origin}${callbackUrl}`,
                   })
                 }
               >

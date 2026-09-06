@@ -25,13 +25,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useGoogleLogin, useLogin } from "@/lib/hooks/auth/useAuth";
 import { toast } from "sonner";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
   const {
     control,
@@ -62,7 +64,7 @@ export function LoginForm({
                 onSuccess: () => {
                   reset();
                   toast.success(`Welcome back ${data.email}`);
-                  router.push("/dashboard");
+                  router.push(callbackUrl);
                 },
               }),
             )}
@@ -75,7 +77,8 @@ export function LoginForm({
                   disabled={googlePending}
                   onClick={() =>
                     googleLogin({
-                      callbackURL: "http://localhost:3000/dashboard",
+                      // callbackURL: "http://localhost:3000/dashboard",
+                      callbackURL: `${window.location.origin}${callbackUrl}`,
                     })
                   }
                 >

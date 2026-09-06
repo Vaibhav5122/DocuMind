@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useCurrentSession, useSignOut } from "@/lib/hooks/auth/useAuth";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useEffect } from "react";
 
 const page = () => {
   const router = useRouter();
@@ -17,6 +18,7 @@ const page = () => {
     );
   }
   console.log("seesss", sessionData);
+
   if (isError || !sessionData?.user) {
     router.replace("/login");
     return null;
