@@ -1,2 +1,4 @@
 allowBuilds:
   esbuild: true
+overrides:
+  mongodb: "^7.6.0"

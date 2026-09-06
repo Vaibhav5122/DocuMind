@@ -5,8 +5,8 @@ import { envZod } from "../common/envSanitization.js";
 
 export const auth = betterAuth({
   //database
-  database: mongodbAdapter(getRawDB, {
-    client: mongoClient,
+  database: mongodbAdapter(getRawDB as any, {
+    client: mongoClient as any,
   }),
 
   //for faster query
@@ -15,7 +15,10 @@ export const auth = betterAuth({
       joins: true,
     },
   },
+
   baseURL: envZod.BETTER_AUTH_URL,
+  trustedOrigins: [envZod.FRONTEND_URL],
+
   emailAndPassword: {
     enabled: true,
   },
