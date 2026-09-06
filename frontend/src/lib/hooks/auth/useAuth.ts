@@ -1,5 +1,9 @@
 import { apiClient } from "@/lib/api/axiosClient";
-import { getSession, signIn } from "@/lib/auth-client";
+import { getSession, signIn, signOut, signUp } from "@/lib/auth-client";
+import {
+  LoginSchemaValues,
+  RegisterSchemaValues,
+} from "@/lib/validations/authValidation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -8,7 +12,7 @@ export function useCurrentSession() {
     queryKey: ["session"],
     queryFn: async () => {
       const response = await getSession();
-      if (response.error) throw response.error;
+      if (response.error) throw response.error.message;
       return response.data;
     },
     staleTime: 1000 * 60 * 5,
@@ -16,25 +20,48 @@ export function useCurrentSession() {
   });
 }
 
-export function useLogin() {
+export function useSignUp() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (values: any) => {
-      const response = await signIn.email(values);
+    mutationFn: async (values: RegisterSchemaValues) => {
+      const { confirmPassword, ...payload } = values;
+
+      const response = await signUp.email(payload);
       if (response.error) {
-        throw response.error;
+        toast.error(response.error.message);
+        throw response.error.message;
       }
       return response.data;
     },
     onSuccess: (data) => {
-      toast.success("Login success");
       console.log(data);
       queryClient.invalidateQueries({ queryKey: ["session"] });
     },
-    onError: (error: any) => {
-      const msg = error.response?.data?.message || "Invalid credentials";
-      toast.error(msg);
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useLogin() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (values: LoginSchemaValues) => {
+      const response = await signIn.email(values);
+      if (response.error) {
+        toast.error(response.error.message);
+        throw response.error.message;
+      }
+      return response.data;
+    },
+    onSuccess: (data) => {
+      console.log(data);
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 }
@@ -44,8 +71,24 @@ export function useGoogleLogin() {
     mutationFn: async ({ callbackURL }: { callbackURL?: string } = {}) => {
       await signIn.social({
         provider: "google",
-        callbackURL: callbackURL || window.location.href + "/dashboard",
+        callbackURL: callbackURL || `${window.location.origin}/dashboard`,
       });
+    },
+  });
+}
+
+export function useSignOut() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await signOut();
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(["session"], null);
+      toast.success("Logout Success");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 }
