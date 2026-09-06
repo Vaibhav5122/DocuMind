@@ -4,6 +4,7 @@ import { ApiError } from "./utils/ApiError.js";
 import { auth } from "../lib/auth.js";
 import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
+import { requireAuth } from "./middlewares/auth.middleware.js";
 
 export async function expressApplication(): Promise<Application> {
   const app = express();
@@ -26,6 +27,10 @@ export async function expressApplication(): Promise<Application> {
 
   app.get("/", (req, res) => {
     return res.status(200).json({ status: "Healthy" });
+  });
+
+  app.get("/api/test-auth", requireAuth, (req, res) => {
+    return res.status(200).json({ authenticated: true, user: req.user });
   });
 
   //Unknown/invalid api endpoint route
