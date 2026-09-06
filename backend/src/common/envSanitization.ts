@@ -6,6 +6,7 @@ const envSchema = z.object({
   BETTER_AUTH_URL: z.string().optional(),
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
+  FRONTEND_URL: z.string(),
 });
 
 function parsedEnvSchema(env: NodeJS.ProcessEnv) {
