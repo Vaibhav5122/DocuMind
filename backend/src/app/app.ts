@@ -4,6 +4,8 @@ import { ApiError } from "./utils/ApiError.js";
 import { auth } from "../lib/auth.js";
 import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
+import { requireAuth } from "./middlewares/auth.middleware.js";
+import { fileRouter } from "./routes/fileUpload.route.js";
 
 export async function expressApplication(): Promise<Application> {
   const app = express();
@@ -24,12 +26,19 @@ export async function expressApplication(): Promise<Application> {
   //MongoDB connection call
   // await connectDB();
 
-  app.get("/", (req, res) => {
+  app.get("/", (_req, res) => {
     return res.status(200).json({ status: "Healthy" });
   });
 
+  app.get("/api/test-auth", requireAuth, (req, res) => {
+    return res.status(200).json({ authenticated: true, user: req.user });
+  });
+
+  //Routes
+  app.use("/api/file-upload", fileRouter);
+
   //Unknown/invalid api endpoint route
-  app.use((req, res, next) => {
+  app.use((_req, _res, next) => {
     next(new ApiError(404, "Invalid route"));
   });
 
