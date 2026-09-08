@@ -30,3 +30,20 @@ export function uploadDocumentToCloudinary(
     uploadStream.end(input.buffer);
   });
 }
+
+export async function deleteDocumentFromCloudinary(publicId: string) {
+  try {
+    const result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: "raw",
+    });
+    console.log(result);
+    if (result.result !== "ok" && result.result !== "not_found") {
+      throw ApiError.notFound(`Document not deleted: ${result.result}`);
+    }
+    return result;
+  } catch (error) {
+    throw ApiError.serverError(
+      "Network or configuration error during cloudinary deletion",
+    );
+  }
+}

@@ -1,7 +1,10 @@
 import type { Request, Response } from "express";
 import { ApiError } from "../utils/ApiError.js";
 import mongoose from "mongoose";
-import { uploadDocumentToCloudinary } from "../services/cloudinary.service.js";
+import {
+  deleteDocumentFromCloudinary,
+  uploadDocumentToCloudinary,
+} from "../services/cloudinary.service.js";
 import { Document } from "../models/documents.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 export class DocumentController {
@@ -87,15 +90,23 @@ export class DocumentController {
     if (!documentId || !mongoose.isValidObjectId(documentId)) {
       throw ApiError.badRequest("Valid documentId required");
     }
-    const document = await Document.findOneAndDelete({
-      _id: documentId,
-      userId,
-    });
+
+    const document = await Document.findOne({ _id: documentId, userId }).select(
+      "cloudinaryPublicId",
+    );
 
     console.log(document);
     if (!document) {
       throw ApiError.notFound("Document not found to delete");
     }
+
+    await deleteDocumentFromCloudinary(document.cloudinaryPublicId);
+
+    const deleteDocument = await Document.deleteOne({
+      cloudinaryPublicId: document.cloudinaryPublicId,
+    });
+    console.log("delete", deleteDocument);
+
     return ApiResponse.noContent(res);
   }
 }

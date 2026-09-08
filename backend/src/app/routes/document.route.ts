@@ -18,7 +18,8 @@ documentRouter
 
 documentRouter
   .route("/:documentId")
-  .get(
+  .get(requireAuth, documentController.getDocumentById.bind(documentController))
+  .delete(
     requireAuth,
-    documentController.getDocumentById.bind(documentController),
+    documentController.deleteDocumentById.bind(documentController),
   );
