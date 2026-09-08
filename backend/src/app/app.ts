@@ -6,6 +6,7 @@ import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import { requireAuth } from "./middlewares/auth.middleware.js";
 import { fileRouter } from "./routes/fileUpload.route.js";
+import { documentRouter } from "./routes/document.route.js";
 
 export async function expressApplication(): Promise<Application> {
   const app = express();
@@ -36,6 +37,7 @@ export async function expressApplication(): Promise<Application> {
 
   //Routes
   app.use("/api/file-upload", fileRouter);
+  app.use("/api/documents", documentRouter);
 
   //Unknown/invalid api endpoint route
   app.use((_req, _res, next) => {

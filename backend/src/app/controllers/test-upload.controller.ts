@@ -8,7 +8,7 @@ export class UploadController {
     if (!req.file) {
       throw ApiError.badRequest("File is required");
     }
-    // console.log("Donee", req.user?.id);
+    console.log("Donee", req.file);
     // console.log(mongoose.isValidObjectId(req.user?.id));
     //Cloudinary upload
     const result = await uploadDocumentToCloudinary({
