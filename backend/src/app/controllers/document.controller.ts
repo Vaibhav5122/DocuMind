@@ -95,7 +95,6 @@ export class DocumentController {
       "cloudinaryPublicId",
     );
 
-    console.log(document);
     if (!document) {
       throw ApiError.notFound("Document not found to delete");
     }
@@ -103,9 +102,13 @@ export class DocumentController {
     await deleteDocumentFromCloudinary(document.cloudinaryPublicId);
 
     const deleteDocument = await Document.deleteOne({
+      _id: documentId,
       cloudinaryPublicId: document.cloudinaryPublicId,
     });
-    console.log("delete", deleteDocument);
+
+    if (deleteDocument.deletedCount === 0) {
+      ApiError.serverError("MongoDB deletion failed");
+    }
 
     return ApiResponse.noContent(res);
   }
