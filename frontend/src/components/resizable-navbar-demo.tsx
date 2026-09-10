@@ -26,7 +26,7 @@ export default function NavbarDemo() {
     },
     {
       name: "Documents",
-      link: "/docuents",
+      link: "/documents",
     },
     {
       name: "Settings",

@@ -39,6 +39,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useGetAllDocument } from "@/lib/hooks/dashboard/useDocuments";
+import { useCurrentSession } from "@/lib/hooks/auth/useAuth";
+import { UploadDocumentDialog } from "./uploadDialog";
 
 // --- Types ---
 export type DocumentStatus = "UPLOADED" | "PROCESSING" | "READY" | "FAILED";
@@ -137,17 +140,21 @@ const INITIAL_DOCUMENTS: DocumentItem[] = [
   },
 ];
 
-interface DashboardContentProps {
-  userName?: string;
-  isLoading?: boolean;
-}
+// interface DashboardContentProps {
+//   userName?: string;
+//   isLoading?: boolean;
+// }
 
-export function DashboardContent({
-  userName = "John",
-  isLoading = false,
-}: DashboardContentProps) {
+export function DashboardContent() {
   const [documents, setDocuments] = useState<DocumentItem[]>(INITIAL_DOCUMENTS);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  const {
+    data: document,
+    isPending: isLoading,
+    isError,
+  } = useGetAllDocument("UPLOADED", 1);
+  const { data: user } = useCurrentSession();
 
   // Compute live statistics
   const stats: DashboardStats = {
@@ -168,7 +175,7 @@ export function DashboardContent({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Welcome back, {userName}
+            Welcome back, {user?.user.name}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Manage your documents, track processing status, and access your

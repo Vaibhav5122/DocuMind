@@ -17,7 +17,6 @@ const About = () => {
       </div>
     );
   }
-  console.log("seesss", sessionData);
 
   if (isError || !sessionData?.user) {
     router.replace("/login");
