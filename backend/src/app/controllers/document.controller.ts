@@ -59,7 +59,7 @@ export class DocumentController {
       .sort({
         createdAt: -1,
       });
-    console.log(allDocuments);
+
     return ApiResponse.ok(res, "Documents fetched", allDocuments);
   }
 
