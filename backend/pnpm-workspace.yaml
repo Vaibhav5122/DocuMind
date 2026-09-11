@@ -1,4 +1,5 @@
 allowBuilds:
   esbuild: true
+  protobufjs: set this to true or false
 overrides:
   mongodb: "^7.6.0"

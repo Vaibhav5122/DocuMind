@@ -7,6 +7,8 @@ import cors from "cors";
 import { requireAuth } from "./middlewares/auth.middleware.js";
 import { fileRouter } from "./routes/fileUpload.route.js";
 import { documentRouter } from "./routes/document.route.js";
+import { serve } from "inngest/express";
+import { functions, inngest } from "../inngest/client.js";
 
 export async function expressApplication(): Promise<Application> {
   const app = express();
@@ -24,9 +26,7 @@ export async function expressApplication(): Promise<Application> {
 
   app.use(express.json());
 
-  //MongoDB connection call
-  // await connectDB();
-
+  //Health Routes
   app.get("/", (_req, res) => {
     return res.status(200).json({ status: "Healthy" });
   });
@@ -38,6 +38,9 @@ export async function expressApplication(): Promise<Application> {
   //Routes
   app.use("/api/file-upload", fileRouter);
   app.use("/api/documents", documentRouter);
+
+  //Inggest Route
+  app.use("/api/inggest", serve({ client: inngest, functions: functions }));
 
   //Unknown/invalid api endpoint route
   app.use((_req, _res, next) => {
