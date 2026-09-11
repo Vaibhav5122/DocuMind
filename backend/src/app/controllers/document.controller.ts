@@ -9,6 +9,7 @@ import { Document } from "../models/documents.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 export class DocumentController {
   public async createDocument(req: Request, res: Response) {
+    console.log("files", req.file);
     if (!req.file) {
       throw ApiError.badRequest("File is required");
     }
@@ -52,10 +53,13 @@ export class DocumentController {
       throw ApiError.unauthorized("Authentication required");
     }
     const allDocuments = await Document.find({ userId })
-      .select("name originalFileName mimeType size status")
+      .select(
+        "name originalFileName cloudinaryUrl mimeType size status createdAt",
+      )
       .sort({
         createdAt: -1,
       });
+    console.log(allDocuments);
     return ApiResponse.ok(res, "Documents fetched", allDocuments);
   }
 

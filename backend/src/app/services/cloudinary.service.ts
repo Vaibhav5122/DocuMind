@@ -6,16 +6,22 @@ interface UploadDocumentInput {
   buffer: Buffer;
   originalFileName: string;
 }
+
 export function uploadDocumentToCloudinary(
   input: UploadDocumentInput,
 ): Promise<UploadApiResponse> {
   return new Promise((res, rej) => {
+    const isPdf = input.originalFileName.toLowerCase().endsWith(".pdf");
+
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        resource_type: "raw",
+        // PDFs MUST be "image" for native in-browser preview without downloading;
+        // DOCX and TXT remain "raw"
+        resource_type: isPdf ? "image" : "raw",
         folder: "documind/documents",
         use_filename: false,
         unique_filename: true,
+        ...(isPdf ? { format: "pdf" } : {}),
       },
       (error, result) => {
         if (error) {
@@ -32,9 +38,17 @@ export function uploadDocumentToCloudinary(
 }
 
 export async function deleteDocumentFromCloudinary(publicId: string) {
-  const result = await cloudinary.uploader.destroy(publicId, {
+  // Try deleting as "raw" first (for DOCX/TXT/legacy files)
+  let result = await cloudinary.uploader.destroy(publicId, {
     resource_type: "raw",
   });
+
+  // If not found as "raw", try deleting as "image" (for PDFs)
+  if (result.result === "not_found") {
+    result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: "image",
+    });
+  }
 
   if (result.result !== "ok" && result.result !== "not_found") {
     throw ApiError.notFound(`Document not deleted: ${result.result}`);

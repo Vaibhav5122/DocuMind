@@ -8,8 +8,6 @@ const allowedMimeTypes = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
 
-// const allowedExtensions = [".pdf", ".docx", ".txt"];
-
 const storage = multer.memoryStorage();
 
 const fileFilter: multer.Options["fileFilter"] = (_req, file, callback) => {
@@ -18,16 +16,15 @@ const fileFilter: multer.Options["fileFilter"] = (_req, file, callback) => {
     mimetype: file.mimetype, // <-- Look at this in your terminal!
   });
 
-  //   const fileExt = path.extname(file.originalname).toLowerCase();
-
   if (!allowedMimeTypes.includes(file.mimetype)) {
-    //   if (!allowedExtensions.includes(fileExt)) {
     return callback(
       ApiError.badRequest("Only PDF, DOCX and TXT files are allowed"),
     );
   }
   callback(null, true);
 };
+
+console.log("Middleware");
 
 export const upload = multer({
   storage,
