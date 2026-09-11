@@ -5,6 +5,7 @@ export interface DocumentItem {
   _id: string;
   name?: string;
   originalFileName: string;
+  cloudinaryUrl: string;
   mimeType: string;
   size: number;
   status: DocumentStatus;

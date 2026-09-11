@@ -1,4 +1,3 @@
-import React from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -41,6 +40,7 @@ import {
   resolveFileType,
 } from "@/lib/utils/documentFormat";
 import type { DocumentItem } from "./types";
+import { getDocumentPreviewUrl } from "@/lib/utils/previewUrl";
 
 interface DocumentTableProps {
   documents: DocumentItem[];
@@ -72,6 +72,11 @@ export function DocumentTable({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedDocuments = documents.slice(startIndex, endIndex);
+
+  const handleViewDocument = (cloudinaryUrl: string, mimeType: string) => {
+    const previewUrl = getDocumentPreviewUrl(cloudinaryUrl, mimeType);
+    window.open(previewUrl, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <Card className="border border-border/60 shadow-sm">
@@ -240,7 +245,12 @@ export function DocumentTable({
                           <DropdownMenuContent align="end" className="w-36">
                             <DropdownMenuItem
                               className="gap-2 cursor-pointer"
-                              onClick={() => onViewDocument?.(doc._id)}
+                              onClick={() =>
+                                handleViewDocument(
+                                  doc.cloudinaryUrl,
+                                  doc.mimeType,
+                                ) as any
+                              }
                             >
                               <ExternalLink className="h-3.5 w-3.5" /> View
                             </DropdownMenuItem>
