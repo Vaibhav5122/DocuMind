@@ -42,6 +42,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useGetAllDocument } from "@/lib/hooks/dashboard/useDocuments";
 import { useCurrentSession } from "@/lib/hooks/auth/useAuth";
 import { UploadDocumentDialog } from "./uploadDialog";
+import { toast } from "sonner";
+import {
+  formatBytes,
+  formatDate,
+  formatDocumentName,
+  resolveFileType,
+} from "@/lib/utils/documentFormat";
 
 // --- Types ---
 export type DocumentStatus = "UPLOADED" | "PROCESSING" | "READY" | "FAILED";
@@ -140,31 +147,28 @@ const INITIAL_DOCUMENTS: DocumentItem[] = [
   },
 ];
 
-// interface DashboardContentProps {
-//   userName?: string;
-//   isLoading?: boolean;
-// }
-
 export function DashboardContent() {
-  const [documents, setDocuments] = useState<DocumentItem[]>(INITIAL_DOCUMENTS);
+  // const [documents, setDocuments] = useState<DocumentItem[]>(INITIAL_DOCUMENTS);
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const {
-    data: document,
+    data: documents = [],
     isPending: isLoading,
     isError,
-  } = useGetAllDocument("UPLOADED", 1);
+  } = useGetAllDocument();
   const { data: user } = useCurrentSession();
 
   // Compute live statistics
   const stats: DashboardStats = {
     total: documents.length,
-    processed: documents.filter((d) => d.status === "UPLOADED").length,
-    processing: documents.filter((d) => d.status === "PROCESSING").length,
-    failed: documents.filter((d) => d.status === "FAILED").length,
+    processed: documents.filter(
+      (d: any) => d.status === "UPLOADED" || d.status === "READY",
+    ).length,
+    processing: documents.filter((d: any) => d.status === "PROCESSING").length,
+    failed: documents.filter((d: any) => d.status === "FAILED").length,
   };
 
-  const filteredDocuments = documents.filter((doc) => {
+  const filteredDocuments = documents.filter((doc: any) => {
     if (statusFilter === "all") return true;
     return doc.status.toLowerCase() === statusFilter.toLowerCase();
   });
@@ -175,17 +179,18 @@ export function DashboardContent() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Welcome back, {user?.user.name}
+            Welcome back, {user?.user.name || "User"}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Manage your documents, track processing status, and access your
             knowledge.
           </p>
         </div>
-        <Button className="gap-2 bg-neutral-900 text-white hover:bg-neutral-800 shadow-sm shrink-0">
+        <UploadDocumentDialog />
+        {/* <Button className="gap-2 bg-neutral-900 text-white hover:bg-neutral-800 shadow-sm shrink-0">
           <Upload className="h-4 w-4" />
           Upload Document
-        </Button>
+        </Button> */}
       </div>
 
       {/* 2. Stat Cards Grid */}
@@ -319,7 +324,7 @@ export function DashboardContent() {
         </div>
 
         {/* 4. Table / Loading / Empty States */}
-        <div className="relative overflow-x-auto">
+        <div className="relative overflow-x-auto ">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent border-y bg-muted/20">
@@ -404,30 +409,30 @@ export function DashboardContent() {
                 </TableRow>
               ) : (
                 // Active Rows
-                filteredDocuments.map((doc) => (
+                filteredDocuments.map((doc: any) => (
                   <TableRow key={doc.id} className="hover:bg-muted/30">
                     {/* Document Name & Icon */}
                     <TableCell className="font-medium text-sm text-foreground">
                       <div className="flex items-center gap-3">
-                        <FileIconBadge type={doc.type} />
-                        <span>{doc.name}</span>
+                        <FileIconBadge type={resolveFileType(doc.mimeType)} />
+                        <span>{doc.originalFileName}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
-                      {doc.fileName}
+                      {formatDocumentName(doc.originalFileName)}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
-                      {doc.type}
+                      {resolveFileType(doc.mimeType)}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
-                      {doc.size}
+                      {formatBytes(doc.size)}
                     </TableCell>
                     {/* Status Badge */}
                     <TableCell>
                       <StatusBadge status={doc.status} />
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
-                      {doc.uploadedOn}
+                      {formatDate(doc.uploadedOn)}
                     </TableCell>
                     {/* Row Actions */}
                     <TableCell className="text-right">

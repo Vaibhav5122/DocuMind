@@ -2,18 +2,20 @@ import { apiClient } from "@/lib/api/axiosClient";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-export function useGetAllDocument(status: string, page: number) {
+// status: string, page: number
+export function useGetAllDocument() {
   return useQuery({
-    queryKey: ["documents", { status, page }],
+    queryKey: ["documents"], //{ status, page }
     queryFn: async () => {
       const response = await apiClient.get("/documents");
-      console.log(response.data);
-      return response.data;
+      console.log("resposedata", response.data);
+      return (response.data?.data || []) as any[];
     },
     refetchInterval: (query) => {
-      const hasProcessing = query.state.data?.documents?.some(
-        (doc: any) => doc.status === "Processing",
-      );
+      const docs = query.state.data;
+      const hasProcessing =
+        Array.isArray(docs) &&
+        docs.some((doc: any) => doc.status === "PROCESSING");
       return hasProcessing ? 4000 : false;
     },
     staleTime: 1000 * 60 * 5,
@@ -25,10 +27,17 @@ export function usePostDocument() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (file: File) => {
+      console.log("file", file);
       const formData = new FormData();
       formData.append("file", file);
+      console.log("formData", formData.get("file"));
 
-      const { data } = await apiClient.post("/documents", formData);
+      const { data } = await apiClient.post("/documents", formData, {
+        headers: {
+          "Content-Type": undefined,
+        },
+      });
+      console.log(data);
       return data;
     },
     onSuccess: () => {
