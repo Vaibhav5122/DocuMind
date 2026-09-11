@@ -9,7 +9,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
@@ -73,7 +72,7 @@ export function UploadDocumentDialog() {
     <>
       <Button
         onClick={() => setOpen(true)}
-        className="gap-2 bg-neutral-900 text-white hover:bg-neutral-800 shadow-sm shrink-0"
+        className="gap-2 shadow-sm shrink-0"
       >
         <UploadCloud className="h-4 w-4" />
         Upload Document

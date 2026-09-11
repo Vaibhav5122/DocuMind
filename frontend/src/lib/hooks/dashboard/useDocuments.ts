@@ -27,10 +27,8 @@ export function usePostDocument() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (file: File) => {
-      console.log("file", file);
       const formData = new FormData();
       formData.append("file", file);
-      console.log("formData", formData.get("file"));
 
       const { data } = await apiClient.post("/documents", formData, {
         headers: {
@@ -49,5 +47,36 @@ export function usePostDocument() {
       const msg = error.response?.data?.message || "Failed to upload document";
       toast.error(msg);
     },
+  });
+}
+
+export function useDeleteDocument() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      console.log("idd,", id);
+      const { data } = await apiClient.delete(`/documents/${id}`);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Document Deleted Successfully");
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+    },
+    onError: (error: any) => {
+      const msg = error.response?.data?.message || "Failed to delete document";
+      toast.error(msg);
+    },
+  });
+}
+
+export function useGetDocumentById() {
+  return useQuery({
+    queryKey: ["documentid"],
+    queryFn: async (id) => {
+      const { data } = await apiClient.get(`/documents/${id}`);
+      return data;
+    },
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 7,
   });
 }

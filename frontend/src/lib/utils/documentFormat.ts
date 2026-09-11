@@ -1,5 +1,3 @@
-import { FileExtension } from "@/components/dashboard/dashboard";
-
 export function formatBytes(bytes: number): string {
   if (!bytes || bytes === 0) return "0 B";
   const k = 1024;
@@ -8,7 +6,7 @@ export function formatBytes(bytes: number): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
-export function resolveFileType(mimeType: string = ""): FileExtension {
+export function resolveFileType(mimeType: string = "") {
   if (mimeType.includes("pdf")) return "PDF";
   if (mimeType.includes("word") || mimeType.includes("officedocument"))
     return "DOCX";
