@@ -1,5 +1,6 @@
 allowBuilds:
   esbuild: true
-  protobufjs: set this to true or false
+  inngest-cli: true
+  protobufjs: true
 overrides:
   mongodb: "^7.6.0"
