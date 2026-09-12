@@ -7,9 +7,10 @@ import {
 } from "../services/cloudinary.service.js";
 import { Document } from "../models/documents.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { inngest } from "../../inngest/client.js";
+
 export class DocumentController {
   public async createDocument(req: Request, res: Response) {
-    console.log("files", req.file);
     if (!req.file) {
       throw ApiError.badRequest("File is required");
     }
@@ -37,6 +38,12 @@ export class DocumentController {
       size,
       status: "UPLOADED",
     });
+
+    const event = await inngest.send({
+      name: "document/uploaded",
+      data: { documentId: document._id.toString(), userId },
+    });
+    console.log("event", event);
     return ApiResponse.created(res, "Document Uploaded", {
       id: document.id,
       name: originalname.replace(/\.[^/.]+$/, ""),

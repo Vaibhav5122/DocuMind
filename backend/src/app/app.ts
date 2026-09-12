@@ -8,7 +8,8 @@ import { requireAuth } from "./middlewares/auth.middleware.js";
 import { fileRouter } from "./routes/fileUpload.route.js";
 import { documentRouter } from "./routes/document.route.js";
 import { serve } from "inngest/express";
-import { functions, inngest } from "../inngest/client.js";
+import { inngest } from "../inngest/client.js";
+import { functions } from "../inngest/index.js";
 
 export async function expressApplication(): Promise<Application> {
   const app = express();
@@ -40,7 +41,7 @@ export async function expressApplication(): Promise<Application> {
   app.use("/api/documents", documentRouter);
 
   //Inggest Route
-  app.use("/api/inggest", serve({ client: inngest, functions: functions }));
+  app.use("/api/inngest", serve({ client: inngest, functions: functions }));
 
   //Unknown/invalid api endpoint route
   app.use((_req, _res, next) => {

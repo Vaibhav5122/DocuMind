@@ -24,7 +24,7 @@ const fileFilter: multer.Options["fileFilter"] = (_req, file, callback) => {
   callback(null, true);
 };
 
-console.log("Middleware");
+console.log("Middleware", fileFilter);
 
 export const upload = multer({
   storage,

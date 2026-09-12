@@ -6,7 +6,8 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "build": "tsc",
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "inngest:dev": "pnpx inngest-cli@latest dev"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +25,7 @@
     "@types/express": "^5.0.6",
     "@types/multer": "^2.2.0",
     "@types/node": "^26.4.1",
+    "inngest-cli": "^1.44.0",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2"
   },
