@@ -39,11 +39,11 @@ export class DocumentController {
       status: "UPLOADED",
     });
 
-    await inngest.send({
+    const event = await inngest.send({
       name: "document/uploaded",
       data: { documentId: document._id.toString(), userId },
     });
-
+    console.log("event", event);
     return ApiResponse.created(res, "Document Uploaded", {
       id: document.id,
       name: originalname.replace(/\.[^/.]+$/, ""),
