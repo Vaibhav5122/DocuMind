@@ -1,4 +1,5 @@
 import { Document } from "../../app/models/documents.model.js";
+import { chunkDocument } from "../../app/services/document-chunking.service.js";
 import { downloadDocumentFromCloudinary } from "../../app/services/document-download.service.js";
 import { extractTextFromDocument } from "../../app/services/document-extraction.service.js";
 import { ApiError } from "../../app/utils/ApiError.js";
@@ -8,10 +9,6 @@ export const processDocument = inngest.createFunction(
   { id: "process-document", triggers: [{ event: "document/uploaded" }] },
   async ({ event, step }) => {
     const { documentId, userId } = event.data;
-
-    // console.log("📄 Processing document");
-    // console.log("Document ID:", documentId);
-    // console.log("User ID:", userId);
 
     // #1 Step Get Document from db
     const document = await step.run("get-document", async () => {
@@ -66,6 +63,21 @@ export const processDocument = inngest.createFunction(
       return extractTextFromDocument(buffer, document.mimeType);
     });
 
+    // #Step 5 Split Document using langchain
+
+    const chunks = await step.run("chunk-document", async () => {
+      return chunkDocument({
+        text: extractedText,
+        documentId,
+        userId,
+      });
+    });
+
+    console.log("Total chunk", chunks.length);
+    console.dir(chunks.slice(0, 3), {
+      depth: null,
+    });
+
     console.log("📄 Text extracted successfully");
     console.log("Document:", documentId);
     console.log("Characters:", extractedText.length);
@@ -76,6 +88,7 @@ export const processDocument = inngest.createFunction(
       userId,
       status: "TEXT_EXTRACTED",
       characterCount: extractedText.length,
+      chunks,
     };
   },
 );
