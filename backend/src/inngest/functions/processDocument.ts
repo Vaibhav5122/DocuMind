@@ -6,7 +6,30 @@ import { ApiError } from "../../app/utils/ApiError.js";
 import { inngest } from "../client.js";
 
 export const processDocument = inngest.createFunction(
-  { id: "process-document", triggers: [{ event: "document/uploaded" }] },
+  {
+    id: "process-document",
+    triggers: [{ event: "document/uploaded" }],
+    onFailure: async ({ event, error, step }) => {
+      const { documentId, userId } = event.data.event.data;
+
+      await step.run("mark-document-failed", async () => {
+        await Document.updateOne(
+          {
+            _id: documentId,
+            userId,
+          },
+          {
+            $set: {
+              status: "FAILED",
+              failureReason: error.message,
+              processedAt: null,
+            },
+          },
+        );
+      });
+    },
+  },
+
   async ({ event, step }) => {
     const { documentId, userId } = event.data;
 
@@ -59,6 +82,8 @@ export const processDocument = inngest.createFunction(
     // #Step4 Extract Text
 
     const extractedText = await step.run("extract-text", async () => {
+      // Intentional error for inngest onFailure check
+
       const buffer = Buffer.from(fileBuffer, "base64");
       return extractTextFromDocument(buffer, document.mimeType);
     });
@@ -71,6 +96,26 @@ export const processDocument = inngest.createFunction(
         documentId,
         userId,
       });
+    });
+
+    await step.run("mark-document-ready", async () => {
+      const result = await Document.updateOne(
+        {
+          _id: documentId,
+          userId,
+          status: "PROCESSING",
+        },
+        {
+          $set: {
+            status: "READY",
+            processedAt: new Date(),
+            failureReason: null,
+          },
+        },
+      );
+      if (result.modifiedCount !== 1) {
+        throw ApiError.serverError("Failed to mark document as READY");
+      }
     });
 
     console.log("Total chunk", chunks.length);
