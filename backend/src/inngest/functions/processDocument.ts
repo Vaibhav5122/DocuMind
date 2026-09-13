@@ -75,21 +75,16 @@ export const processDocument = inngest.createFunction(
       const buffer = await downloadDocumentFromCloudinary(
         document.cloudinaryUrl,
       );
-
       return buffer.toString("base64");
     });
 
     // #Step4 Extract Text
-
     const extractedText = await step.run("extract-text", async () => {
-      // Intentional error for inngest onFailure check
-
       const buffer = Buffer.from(fileBuffer, "base64");
       return extractTextFromDocument(buffer, document.mimeType);
     });
 
     // #Step 5 Split Document using langchain
-
     const chunks = await step.run("chunk-document", async () => {
       return chunkDocument({
         text: extractedText,
@@ -97,36 +92,31 @@ export const processDocument = inngest.createFunction(
         userId,
       });
     });
-
-    await step.run("mark-document-ready", async () => {
-      const result = await Document.updateOne(
-        {
-          _id: documentId,
-          userId,
-          status: "PROCESSING",
-        },
-        {
-          $set: {
-            status: "READY",
-            processedAt: new Date(),
-            failureReason: null,
-          },
-        },
-      );
-      if (result.modifiedCount !== 1) {
-        throw ApiError.serverError("Failed to mark document as READY");
-      }
-    });
+    // #Step 6 Change status of Document to READY
+    // await step.run("mark-document-ready", async () => {
+    //   const result = await Document.updateOne(
+    //     {
+    //       _id: documentId,
+    //       userId,
+    //       status: "PROCESSING",
+    //     },
+    //     {
+    //       $set: {
+    //         status: "READY",
+    //         processedAt: new Date(),
+    //         failureReason: null,
+    //       },
+    //     },
+    //   );
+    //   if (result.modifiedCount !== 1) {
+    //     throw ApiError.serverError("Failed to mark document as READY");
+    //   }
+    // });
 
     console.log("Total chunk", chunks.length);
     console.dir(chunks.slice(0, 3), {
       depth: null,
     });
-
-    console.log("📄 Text extracted successfully");
-    console.log("Document:", documentId);
-    console.log("Characters:", extractedText.length);
-    console.log("Extracted text", extractedText);
 
     return {
       documentId,
