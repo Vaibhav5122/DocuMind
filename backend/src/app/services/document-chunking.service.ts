@@ -5,6 +5,7 @@ interface ChunkDocumentInput {
   text: string;
   documentId: string;
   userId: string;
+  source: string;
 }
 
 const textSplitter = new RecursiveCharacterTextSplitter({
@@ -17,10 +18,17 @@ export async function chunkDocument({
   text,
   documentId,
   userId,
+  source,
 }: ChunkDocumentInput): Promise<Document[]> {
   const documents = await textSplitter.createDocuments(
     [text],
-    [{ documentId, userId }],
+    [{ documentId, userId, source }],
   );
-  return documents;
+  const chunkWithMetadata = documents.map((doc, idx) => {
+    return new Document({
+      pageContent: doc.pageContent,
+      metadata: { ...doc.metadata, chunkIndex: idx },
+    });
+  });
+  return chunkWithMetadata;
 }

@@ -40,7 +40,7 @@ export const processDocument = inngest.createFunction(
         userId,
       })
         .select(
-          "_id userId cloudinaryPublicId cloudinaryUrl mimeType size status",
+          "_id userId originalFileName cloudinaryPublicId cloudinaryUrl mimeType size status",
         )
         .lean();
     });
@@ -90,28 +90,30 @@ export const processDocument = inngest.createFunction(
         text: extractedText,
         documentId,
         userId,
+        source: document.originalFileName,
       });
     });
+
     // #Step 6 Change status of Document to READY
-    // await step.run("mark-document-ready", async () => {
-    //   const result = await Document.updateOne(
-    //     {
-    //       _id: documentId,
-    //       userId,
-    //       status: "PROCESSING",
-    //     },
-    //     {
-    //       $set: {
-    //         status: "READY",
-    //         processedAt: new Date(),
-    //         failureReason: null,
-    //       },
-    //     },
-    //   );
-    //   if (result.modifiedCount !== 1) {
-    //     throw ApiError.serverError("Failed to mark document as READY");
-    //   }
-    // });
+    await step.run("mark-document-ready", async () => {
+      const result = await Document.updateOne(
+        {
+          _id: documentId,
+          userId,
+          status: "PROCESSING",
+        },
+        {
+          $set: {
+            status: "READY",
+            processedAt: new Date(),
+            failureReason: null,
+          },
+        },
+      );
+      if (result.modifiedCount !== 1) {
+        throw ApiError.serverError("Failed to mark document as READY");
+      }
+    });
 
     console.log("Total chunk", chunks.length);
     console.dir(chunks.slice(0, 3), {
