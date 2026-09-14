@@ -11,6 +11,8 @@ const envSchema = z.object({
   CLOUDINARY_API_KEY: z.string().min(1),
   CLOUDINARY_API_SECRET: z.string().min(1),
   PINECONE_API_KEY: z.string().min(1),
+  PINECONE_INDEX_NAME: z.string().min(1),
+  PINECONE_HOST_URL: z.string().min(1),
 });
 
 function parsedEnvSchema(env: NodeJS.ProcessEnv) {
