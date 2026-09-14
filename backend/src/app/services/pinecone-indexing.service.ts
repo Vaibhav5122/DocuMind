@@ -1,4 +1,4 @@
-import type { Document } from "langchain";
+import type { Document } from "@langchain/core/documents";
 import { pc } from "../configs/pinecone.config.js";
 import { envZod } from "../../common/envSanitization.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -13,14 +13,29 @@ export async function indexDocumentChunks(chunks: Document[]): Promise<number> {
     return 0;
   }
 
-  const firstChunkUserId = chunks[0]?.metadata?.userId;
+  const firstChunk = chunks[0];
 
-  if (!firstChunkUserId) {
-    throw ApiError.serverError("Missing userId in chunk metadata");
+  const firstChunkUserId = firstChunk?.metadata?.userId;
+  const firstChunkDocumentId = firstChunk?.metadata?.documentId;
+
+  if (!firstChunkUserId || !firstChunkDocumentId) {
+    throw ApiError.serverError(
+      "Missing userId or documentId in chunk metadata",
+    );
   }
 
   const records = chunks.map((chunk) => {
     const { documentId, userId, chunkIndex, source } = chunk.metadata;
+
+    if (documentId !== firstChunkDocumentId || userId !== firstChunkUserId) {
+      throw ApiError.serverError(
+        "Chunk metadata contains inconsistent document ownership",
+      );
+    }
+
+    if (chunkIndex === undefined || chunkIndex === null) {
+      throw ApiError.serverError("Missing chunkIndex in chunk metadata");
+    }
 
     return {
       id: `${documentId}_${chunkIndex}`,
