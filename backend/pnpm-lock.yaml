@@ -216,6 +216,9 @@ importers:
       '@langchain/textsplitters':
         specifier: ^1.0.1
         version: 1.0.1(@langchain/core@1.2.11(@opentelemetry/api@1.9.1)(@opentelemetry/exporter-trace-otlp-proto@0.222.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.11.0(@opentelemetry/api@1.9.1)))
+      '@openrouter/sdk':
+        specifier: ^1.2.120
+        version: 1.2.120
       '@pinecone-database/pinecone':
         specifier: ^9.0.0
         version: 9.0.0
@@ -670,6 +673,9 @@ packages:
   '@noble/hashes@2.4.0':
     resolution: {integrity: sha512-X5XaVWZIBCT7HHZGm5I7ZQXDwLG+bGXuSrMQAW+7Zvl87h1kmc1ZB1VSRJcpUfoUrGQp4Fkoxm5kZ+Ms+aW+eA==}
     engines: {node: '>= 20.19.0'}
+
+  '@openrouter/sdk@1.2.120':
+    resolution: {integrity: sha512-/Pn0mKsGNVI7cLng8esMx5X0rCbOetvCG2wv9U/ymfi07cH3fDqL/h5TwQZmEGqHLQa6RdSGKE71j3nOBzekMQ==}
 
   '@opentelemetry/api-logs@0.203.0':
     resolution: {integrity: sha512-9B9RU0H7Ya1Dx/Rkyc4stuBZSGVQF27WigitInx2QQoj6KUpEFYPKoWjdFTunJYxmXmh17HeBvbMa1EhGyPmqQ==}
@@ -2805,6 +2811,10 @@ snapshots:
   '@noble/ciphers@2.4.0': {}
 
   '@noble/hashes@2.4.0': {}
+
+  '@openrouter/sdk@1.2.120':
+    dependencies:
+      zod: 4.5.4
 
   '@opentelemetry/api-logs@0.203.0':
     dependencies:

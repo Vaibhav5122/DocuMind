@@ -1,9 +1,9 @@
 import type { Document } from "@langchain/core/documents";
-import { pc } from "../configs/pinecone.config.js";
-import { envZod } from "../../common/envSanitization.js";
-import { ApiError } from "../utils/ApiError.js";
+import { pc } from "../../configs/pinecone.config.js";
+import { envZod } from "../../../common/envSanitization.js";
+import { ApiError } from "../../utils/ApiError.js";
 
-const index = pc.index({
+export const index = pc.index({
   name: envZod.PINECONE_INDEX_NAME,
   host: envZod.PINECONE_HOST_URL,
 });
