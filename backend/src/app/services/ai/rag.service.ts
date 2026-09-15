@@ -4,8 +4,8 @@ import { generateAnswer } from "./openrouter.service.js";
 
 interface AskDocumentInput {
   query: string;
-  documentId: string;
   userId: string;
+  documentId?: string;
 }
 
 export async function askDocuments({
