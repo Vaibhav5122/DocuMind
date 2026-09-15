@@ -1,29 +1,39 @@
+import { ApiError } from "../../utils/ApiError.js";
 import { index } from "./indexing.service.js";
 
-export async function searchDocumentChunks(
-  query: string,
-  userId: string,
-  topK: number,
-) {
+interface SearchDocumentInput {
+  query: string;
+  userId: string;
+  documentId?: string;
+  topK?: number;
+}
+
+export async function searchDocumentChunks({
+  query,
+  userId,
+  documentId,
+  topK = 5,
+}: SearchDocumentInput) {
+  if (!query || query.trim().length === 0) {
+    throw ApiError.badRequest("Search query not given");
+  }
+  const queryPayload: {
+    topK: number;
+    inputs: { text: string };
+    filter?: Record<string, unknown>;
+  } = {
+    topK,
+    inputs: { text: query },
+  };
+  if (documentId) {
+    queryPayload.filter = {
+      documentId: { $eq: documentId },
+    };
+  }
+
   const response = await index.namespace(`user-${userId}`).searchRecords({
-    query: {
-      topK,
-      inputs: { text: query },
-    },
-    fields: [
-      "text",
-      "documentId",
-      "userId",
-      "originalFileName",
-      "chunkIndex",
-      "source",
-    ],
+    query: queryPayload,
+    fields: ["text", "documentId", "userId", "chunkIndex", "source"],
   });
-  console.log(
-    "pinecone result is here ----------------",
-    response.result.hits,
-    "hello-------------------",
-    response,
-  );
   return response.result?.hits || [];
 }

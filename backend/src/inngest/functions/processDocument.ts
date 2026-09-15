@@ -2,6 +2,7 @@ import { Document } from "../../app/models/documents.model.js";
 import { chunkDocument } from "../../app/services/document-chunking.service.js";
 import { downloadDocumentFromCloudinary } from "../../app/services/document-download.service.js";
 import { extractTextFromDocument } from "../../app/services/document-extraction.service.js";
+import { indexDocumentChunks } from "../../app/services/pinecone/indexing.service.js";
 import { ApiError } from "../../app/utils/ApiError.js";
 import { inngest } from "../client.js";
 
@@ -94,7 +95,12 @@ export const processDocument = inngest.createFunction(
       });
     });
 
-    // #Step 6 Change status of Document to READY
+    // #Step 6 Pinecone Index
+    const indexedChunkCount = await step.run("index-document", async () => {
+      return await indexDocumentChunks(chunks);
+    });
+
+    // #Step 7 Change status of Document to READY
     await step.run("mark-document-ready", async () => {
       const result = await Document.updateOne(
         {
@@ -107,6 +113,7 @@ export const processDocument = inngest.createFunction(
             status: "READY",
             processedAt: new Date(),
             failureReason: null,
+            chunkCount: indexedChunkCount,
           },
         },
       );
@@ -123,9 +130,9 @@ export const processDocument = inngest.createFunction(
     return {
       documentId,
       userId,
-      status: "TEXT_EXTRACTED",
+      status: "READY",
       characterCount: extractedText.length,
-      chunks,
+      chunkCount: chunks.length,
     };
   },
 );

@@ -8,7 +8,6 @@ import {
 import { Document } from "../models/documents.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { inngest } from "../../inngest/client.js";
-import { searchDocumentChunks } from "../services/pinecone/search.service.js";
 
 export class DocumentController {
   public async createDocument(req: Request, res: Response) {
