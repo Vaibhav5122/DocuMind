@@ -21,17 +21,17 @@ export async function generateAnswer({ prompt }: GenerateAnswerInput) {
   if (!(response instanceof ReadableStream)) {
     throw ApiError.serverError("Expected a streaming response");
   }
-  console.log("Response:", response);
-  console.log("Response type:", typeof response);
-  console.log("Is ReadableStream:", response instanceof ReadableStream);
+  let answer = "";
 
   for await (const chunk of response) {
     const content = chunk.choices?.[0]?.delta?.content;
     if (content) {
       console.log(content);
+      answer += content;
     }
     if (chunk.usage) {
       console.log("Usage", chunk.usage); //Final chunk
     }
   }
+  return answer;
 }

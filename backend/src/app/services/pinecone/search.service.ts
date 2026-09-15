@@ -1,7 +1,7 @@
 import { ApiError } from "../../utils/ApiError.js";
 import { index } from "./indexing.service.js";
 
-interface SearchDocumentInput {
+export interface SearchDocumentInput {
   query: string;
   userId: string;
   documentId?: string;
