@@ -11,6 +11,7 @@ import { serve } from "inngest/express";
 import { inngest } from "../inngest/client.js";
 import { functions } from "../inngest/index.js";
 import { pineconeConnect } from "./configs/pinecone.config.js";
+import { searchDocumentChunks } from "./services/pinecone/search.service.js";
 
 export async function expressApplication(): Promise<Application> {
   const app = express();
@@ -25,6 +26,8 @@ export async function expressApplication(): Promise<Application> {
 
   //BetterAuth Middleware
   app.all("/api/auth/{*any}", toNodeHandler(auth));
+
+  //Pinecone Connect
   pineconeConnect();
 
   app.use(express.json());
