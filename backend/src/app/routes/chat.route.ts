@@ -9,3 +9,10 @@ const chatController = new ChatController();
 chatRouter
   .route("/")
   .post(requireAuth, chatController.chatWithDocument.bind(chatController));
+
+chatRouter
+  .route("/stream")
+  .post(
+    requireAuth,
+    chatController.chatWithDocumentStream.bind(chatController),
+  );

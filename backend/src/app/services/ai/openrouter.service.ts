@@ -4,13 +4,21 @@ import { ApiError } from "../../utils/ApiError.js";
 
 interface GenerateAnswerInput {
   prompt: string;
+  SYSTEM_PROMPT: string;
 }
-export async function generateAnswer({ prompt }: GenerateAnswerInput) {
+export async function* generateAnswerStream({
+  prompt,
+  SYSTEM_PROMPT,
+}: GenerateAnswerInput) {
   const response = await openRouter.chat.send({
     chatRequest: {
       model: envZod.OPENROUTER_MODEL,
       stream: true,
       messages: [
+        {
+          role: "system",
+          content: SYSTEM_PROMPT,
+        },
         {
           role: "user",
           content: prompt,
@@ -21,17 +29,14 @@ export async function generateAnswer({ prompt }: GenerateAnswerInput) {
   if (!(response instanceof ReadableStream)) {
     throw ApiError.serverError("Expected a streaming response");
   }
-  let answer = "";
 
   for await (const chunk of response) {
     const content = chunk.choices?.[0]?.delta?.content;
     if (content) {
-      console.log(content);
-      answer += content;
+      yield content;
     }
     if (chunk.usage) {
       console.log("Usage", chunk.usage); //Final chunk
     }
   }
-  return answer;
 }
