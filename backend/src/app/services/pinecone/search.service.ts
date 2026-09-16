@@ -35,6 +35,5 @@ export async function searchDocumentChunks({
     query: queryPayload,
     fields: ["text", "documentId", "userId", "chunkIndex", "source"],
   });
-  console.log("hitssss", response.result.hits);
   return response.result?.hits || [];
 }

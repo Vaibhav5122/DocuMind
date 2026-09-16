@@ -10,6 +10,7 @@ import { documentRouter } from "./routes/document.route.js";
 import { serve } from "inngest/express";
 import { inngest } from "../inngest/client.js";
 import { functions } from "../inngest/index.js";
+import { chatRouter } from "./routes/chat.route.js";
 
 export async function expressApplication(): Promise<Application> {
   const app = express();
@@ -39,6 +40,7 @@ export async function expressApplication(): Promise<Application> {
   //Routes
   app.use("/api/file-upload", fileRouter);
   app.use("/api/documents", documentRouter);
+  app.use("/api/chat", chatRouter);
 
   //Inggest Route
   app.use("/api/inngest", serve({ client: inngest, functions: functions }));
