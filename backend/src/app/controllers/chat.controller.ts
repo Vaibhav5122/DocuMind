@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
 import { ApiError } from "../utils/ApiError.js";
-import { askDocuments } from "../services/ai/rag.service.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { askDocuments } from "../services/ai/ragNonStream.service.js";
+import { askDocumentsStream } from "../services/ai/ragStream.service.js";
 
 export class ChatController {
   public async chatWithDocument(req: Request, res: Response) {
@@ -31,7 +32,7 @@ export class ChatController {
     res.flushHeaders();
 
     try {
-      const result = await askDocuments({ query, documentId, userId });
+      const result = await askDocumentsStream({ query, documentId, userId });
       if (result.noResult) {
         res.write(
           `data: ${JSON.stringify({

@@ -2,13 +2,13 @@ import { ApiError } from "../../utils/ApiError.js";
 import { searchDocumentChunks } from "../pinecone/search.service.js";
 import { generateAnswerStream } from "./openrouter.service.js";
 
-interface AskDocumentInput {
+export interface AskDocumentInput {
   query: string;
   userId: string;
-  documentId?: string;
+  documentId?: string | undefined;
 }
 
-export async function askDocuments({
+export async function prepareRagContext({
   query,
   documentId,
   userId,
@@ -26,7 +26,8 @@ export async function askDocuments({
 
   if (chunks.length === 0) {
     return {
-      answer: "I couldn't find relevant information in your documents.",
+      noResult: true,
+      context: null,
       citations: [],
     };
   }
@@ -67,7 +68,7 @@ export async function askDocuments({
       </user_question>
     `;
 
-  const stream = generateAnswerStream({ prompt, SYSTEM_PROMPT });
+  // const stream = generateAnswerStream({ prompt, SYSTEM_PROMPT });
 
   const citations = chunks.map((chunk, index) => {
     const fields = chunk.fields as Record<string, unknown>;
@@ -81,8 +82,9 @@ export async function askDocuments({
     };
   });
   return {
-    stream,
-    citations,
     noResult: false,
+    prompt,
+    SYSTEM_PROMPT,
+    citations,
   };
 }
