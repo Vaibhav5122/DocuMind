@@ -5,7 +5,7 @@ import { generateAnswerStream } from "./openrouter.service.js";
 export interface AskDocumentInput {
   query: string;
   userId: string;
-  documentId?: string | undefined;
+  documentId?: string | string[] | undefined;
 }
 
 export async function prepareRagContext({

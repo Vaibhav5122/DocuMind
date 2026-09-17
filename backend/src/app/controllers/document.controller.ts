@@ -8,6 +8,7 @@ import {
 import { Document } from "../models/documents.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { inngest } from "../../inngest/client.js";
+import { deleteDocumentVectors } from "../services/pinecone/indexing.service.js";
 
 export class DocumentController {
   public async createDocument(req: Request, res: Response) {
@@ -93,7 +94,7 @@ export class DocumentController {
   //Delete document by id
   public async deleteDocumentById(req: Request, res: Response) {
     const userId = req.user?.id;
-    const { documentId } = req.params;
+    const documentId = req.params.documentId as string;
 
     if (!userId) {
       throw ApiError.unauthorized("Authentication required");
@@ -103,22 +104,33 @@ export class DocumentController {
     }
 
     const document = await Document.findOne({ _id: documentId, userId }).select(
-      "cloudinaryPublicId",
+      "cloudinaryPublicId mimeType originalFileName",
     );
 
     if (!document) {
       throw ApiError.notFound("Document not found to delete");
     }
 
-    await deleteDocumentFromCloudinary(document.cloudinaryPublicId);
+    // 1. Delete asset from Cloudinary (intelligently targeting image/raw based on file type)
+    if (document.cloudinaryPublicId) {
+      await deleteDocumentFromCloudinary({
+        publicId: document.cloudinaryPublicId,
+        mimeType: document.mimeType,
+        originalFileName: document.originalFileName,
+      });
+    }
 
+    // 2. Clean up vector embeddings in Pinecone namespace
+    await deleteDocumentVectors(documentId, userId);
+
+    // 3. Delete from MongoDB
     const deleteDocument = await Document.deleteOne({
       _id: documentId,
-      cloudinaryPublicId: document.cloudinaryPublicId,
+      userId,
     });
 
     if (deleteDocument.deletedCount === 0) {
-      ApiError.serverError("MongoDB deletion failed");
+      throw ApiError.serverError("MongoDB deletion failed");
     }
 
     return ApiResponse.noContent(res);

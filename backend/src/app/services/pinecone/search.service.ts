@@ -4,7 +4,7 @@ import { index } from "./indexing.service.js";
 export interface SearchDocumentInput {
   query: string;
   userId: string;
-  documentId?: string | undefined;
+  documentId?: string | string[] | undefined;
   topK?: number;
 }
 
@@ -26,9 +26,21 @@ export async function searchDocumentChunks({
     inputs: { text: query },
   };
   if (documentId) {
-    queryPayload.filter = {
-      documentId: { $eq: documentId },
-    };
+    if (Array.isArray(documentId) && documentId.length > 0) {
+      if (documentId.length === 1) {
+        queryPayload.filter = {
+          documentId: { $eq: documentId[0] },
+        };
+      } else {
+        queryPayload.filter = {
+          documentId: { $in: documentId },
+        };
+      }
+    } else if (typeof documentId === "string" && documentId.trim().length > 0) {
+      queryPayload.filter = {
+        documentId: { $eq: documentId },
+      };
+    }
   }
 
   const response = await index.namespace(`user-${userId}`).searchRecords({

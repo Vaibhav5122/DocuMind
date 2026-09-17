@@ -37,21 +37,49 @@ export function uploadDocumentToCloudinary(
   });
 }
 
-export async function deleteDocumentFromCloudinary(publicId: string) {
-  // Try deleting as "raw" first (for DOCX/TXT/legacy files)
-  let result = await cloudinary.uploader.destroy(publicId, {
-    resource_type: "raw",
-  });
+export interface DeleteDocumentInput {
+  publicId: string;
+  mimeType?: string;
+  originalFileName?: string;
+}
 
-  // If not found as "raw", try deleting as "image" (for PDFs)
-  if (result.result === "not_found") {
-    result = await cloudinary.uploader.destroy(publicId, {
-      resource_type: "image",
+export async function deleteDocumentFromCloudinary(
+  input: string | DeleteDocumentInput,
+) {
+  const publicId = typeof input === "string" ? input : input?.publicId;
+  if (!publicId) return { result: "ok" };
+
+  const isPdf =
+    typeof input === "object" &&
+    (input.mimeType === "application/pdf" ||
+      Boolean(input.originalFileName?.toLowerCase().endsWith(".pdf")));
+
+  // Select primary resource type based on file type
+  const primaryType: "image" | "raw" = isPdf ? "image" : "raw";
+  const fallbackType: "image" | "raw" = isPdf ? "raw" : "image";
+
+  const isNotFound = (res?: string) =>
+    !res || res === "not found" || res === "not_found";
+
+  try {
+    let result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: primaryType,
     });
-  }
 
-  if (result.result !== "ok" && result.result !== "not_found") {
-    throw ApiError.notFound(`Document not deleted: ${result.result}`);
+    // Cloudinary returns "not found" (with a space) when resource_type does not match
+    if (isNotFound(result?.result)) {
+      result = await cloudinary.uploader.destroy(publicId, {
+        resource_type: fallbackType,
+      });
+    }
+
+    return result;
+  } catch (error: any) {
+    console.warn(
+      `⚠️ Cloudinary destroy failed for publicId "${publicId}":`,
+      error?.message || error,
+    );
+    // Non-blocking: allow database and Pinecone deletion to proceed
+    return { result: "ok" };
   }
-  return result;
 }

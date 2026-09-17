@@ -54,3 +54,20 @@ export async function indexDocumentChunks(chunks: Document[]): Promise<number> {
 
   return records.length;
 }
+
+export async function deleteDocumentVectors(
+  documentId: string,
+  userId: string,
+): Promise<void> {
+  try {
+    await index.deleteMany({
+      namespace: `user-${userId}`,
+      filter: { documentId: { $eq: documentId } },
+    });
+  } catch (error: any) {
+    console.warn(
+      `⚠️ Could not delete Pinecone vectors for doc ${documentId}:`,
+      error?.message || error,
+    );
+  }
+}
