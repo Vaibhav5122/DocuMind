@@ -245,12 +245,12 @@ export function DocumentTable({
                           <DropdownMenuContent align="end" className="w-36">
                             <DropdownMenuItem
                               className="gap-2 cursor-pointer"
-                              onClick={() =>
+                              onClick={() => {
                                 handleViewDocument(
                                   doc.cloudinaryUrl,
                                   doc.mimeType,
-                                ) as any
-                              }
+                                );
+                              }}
                             >
                               <ExternalLink className="h-3.5 w-3.5" /> View
                             </DropdownMenuItem>

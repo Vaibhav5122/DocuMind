@@ -21,6 +21,10 @@ export default function NavbarDemo() {
       link: "/dashboard",
     },
     {
+      name: "Chat",
+      link: "/chat",
+    },
+    {
       name: "Upload",
       link: "/upload",
     },
