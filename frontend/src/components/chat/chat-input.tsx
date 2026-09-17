@@ -159,7 +159,7 @@ export function ChatInput({
         )}
 
         {/* Input Bar Container */}
-        <div className="relative flex items-end rounded-2xl border border-border/80 bg-card focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 shadow-sm transition-all">
+        <div className="relative flex items-center gap-1.5 rounded-2xl border border-border/80 bg-card focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 shadow-sm transition-all px-2.5 py-1.5">
           {/* File Attachment Input (hidden) */}
           <input
             ref={fileInputRef}
@@ -170,23 +170,21 @@ export function ChatInput({
           />
 
           {/* Attach Button */}
-          <div className="p-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              disabled={isUploading}
-              onClick={() => fileInputRef.current?.click()}
-              className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted"
-              title="Attach document (PDF, DOCX, TXT)"
-            >
-              {isUploading ? (
-                <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              ) : (
-                <Paperclip className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            disabled={isUploading}
+            onClick={() => fileInputRef.current?.click()}
+            className="h-8 w-8 shrink-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+            title="Attach document (PDF, DOCX, TXT)"
+          >
+            {isUploading ? (
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            ) : (
+              <Paperclip className="h-4 w-4" />
+            )}
+          </Button>
 
           {/* Auto-growing Textarea */}
           <textarea
@@ -204,11 +202,11 @@ export function ChatInput({
                   }...`
                 : "Ask anything about all your documents..."
             }
-            className="flex-1 max-h-40 min-h-[40px] resize-none bg-transparent py-2.5 px-1 text-sm placeholder:text-muted-foreground/70 focus:outline-hidden text-foreground leading-normal"
+            className="flex-1 max-h-40 min-h-[38px] resize-none bg-transparent py-2 px-1 text-sm placeholder:text-muted-foreground/70 focus:outline-hidden text-foreground leading-normal"
           />
 
           {/* Send or Stop Button */}
-          <div className="p-2">
+          <div className="shrink-0 flex items-center">
             {isStreaming ? (
               <Button
                 type="button"
@@ -225,7 +223,7 @@ export function ChatInput({
                 size="icon"
                 disabled={!input.trim() || isUploading}
                 onClick={handleSend}
-                className="h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-30 disabled:pointer-events-none transition-transform active:scale-95 shadow-xs"
+                className="h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-30 disabled:pointer-events-none transition-transform active:scale-95 shadow-xs cursor-pointer flex items-center justify-center"
                 title="Send question (Enter)"
               >
                 <ArrowUp className="h-4 w-4 stroke-[2.5]" />
