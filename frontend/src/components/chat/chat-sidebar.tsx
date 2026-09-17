@@ -11,6 +11,7 @@ import {
   UploadCloud,
   Check,
   PanelLeftClose,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ import { formatBytes, formatDate } from "@/lib/utils/documentFormat";
 interface ChatSidebarProps {
   documents: DocumentInfo[];
   isLoading: boolean;
+  isUploading?: boolean;
   selectedDocIds: string[];
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -39,6 +41,7 @@ interface ChatSidebarProps {
 export function ChatSidebar({
   documents,
   isLoading,
+  isUploading = false,
   selectedDocIds,
   searchQuery,
   onSearchChange,
@@ -221,10 +224,20 @@ export function ChatSidebar({
       <div className="p-3 border-t border-border bg-card">
         <Button
           onClick={onUploadClick}
-          className="w-full gap-2 text-xs h-9 justify-center font-medium shadow-xs"
+          disabled={isUploading}
+          className="w-full gap-2 text-xs h-9 justify-center font-medium shadow-xs disabled:opacity-70 cursor-pointer"
         >
-          <UploadCloud className="h-4 w-4" />
-          Add / Upload Document
+          {isUploading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin text-primary-foreground" />
+              <span>Uploading document...</span>
+            </>
+          ) : (
+            <>
+              <UploadCloud className="h-4 w-4" />
+              <span>Add / Upload Document</span>
+            </>
+          )}
         </Button>
       </div>
     </div>

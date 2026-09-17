@@ -5,9 +5,10 @@ import {
   PanelLeftOpen,
   Plus,
   Menu,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useGetAllDocument, usePostDocument } from "@/lib/hooks/dashboard/useDocuments";
+import { useChatDocuments, useUploadDocument } from "@/lib/hooks/chat/useChatDocuments";
 import { useCurrentSession } from "@/lib/hooks/auth/useAuth";
 import { useDocumentSelection } from "@/lib/hooks/chat/useDocumentSelection";
 import { useChatStream } from "@/lib/hooks/chat/useChatStream";
@@ -20,8 +21,8 @@ import type { ReferencedDoc } from "@/types/chat";
 
 export function ChatView() {
   const { data: userSession } = useCurrentSession();
-  const { data: documents = [], isPending: isLoadingDocs } = useGetAllDocument();
-  const { mutate: uploadDocument } = usePostDocument();
+  const { documents = [], isLoading: isLoadingDocs } = useChatDocuments();
+  const { uploadDocument, isPending: isUploadingDoc } = useUploadDocument();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -58,7 +59,7 @@ export function ChatView() {
   const handleSubmit = (text: string) => {
     const referenced: ReferencedDoc[] = selectedDocuments.map((d) => ({
       id: d._id,
-      name: d.name,
+      name: d.name || d.originalFileName,
       originalFileName: d.originalFileName,
     }));
     sendMessage(text, referenced);
@@ -88,8 +89,12 @@ export function ChatView() {
           selectDocument(docId);
         }
       },
-      onError: () => {
+      onError: (err: unknown) => {
         if (sidebarFileInputRef.current) sidebarFileInputRef.current.value = "";
+        const msg =
+          (err as { response?: { data?: { message?: string } } })?.response
+            ?.data?.message || "Failed to upload document";
+        toast.error(msg);
       },
     });
   };
@@ -101,13 +106,14 @@ export function ChatView() {
 
   const referencedDocItems: ReferencedDoc[] = selectedDocuments.map((d) => ({
     id: d._id,
-    name: d.name,
+    name: d.name || d.originalFileName,
     originalFileName: d.originalFileName,
   }));
 
   return (
-    <div className="relative flex h-[calc(100vh-7.5rem)] min-h-[560px] w-full rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
-      {/* Hidden file input for sidebar upload */}
+    <div className="w-full flex-1 px-3 sm:px-6 lg:px-8 pb-3 sm:pb-5 flex flex-col h-[calc(100dvh-4.5rem)] sm:h-[calc(100dvh-5.5rem)] min-h-[560px]">
+      <div className="relative flex flex-1 w-full max-w-7xl mx-auto rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+        {/* Hidden file input for sidebar upload */}
       <input
         ref={sidebarFileInputRef}
         type="file"
@@ -120,6 +126,7 @@ export function ChatView() {
       <ChatSidebar
         documents={documents}
         isLoading={isLoadingDocs}
+        isUploading={isUploadingDoc}
         selectedDocIds={selectedDocIds}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -143,18 +150,18 @@ export function ChatView() {
       />
 
       {/* Main Chat Pane */}
-      <div className="flex flex-1 flex-col min-w-0 bg-background/50">
+      <div className="flex flex-1 flex-col min-w-0 bg-background/50 relative h-full">
         {/* Chat Area Top Bar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card/60 backdrop-blur-xs">
+        <div className="flex items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3 border-b border-border/80 bg-card/60 backdrop-blur-md z-10">
           <div className="flex items-center gap-2 min-w-0">
-            {/* Toggle sidebar button */}
+            {/* Toggle sidebar button (desktop) */}
             {!isSidebarOpen && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-foreground hidden md:flex shrink-0"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground hidden md:flex shrink-0 cursor-pointer"
                 onClick={() => setIsSidebarOpen(true)}
-                title="Open sidebar"
+                title="Open knowledge base sidebar"
               >
                 <PanelLeftOpen className="h-4 w-4" />
               </Button>
@@ -162,20 +169,27 @@ export function ChatView() {
 
             {/* Mobile menu trigger */}
             <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground md:hidden shrink-0"
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 px-2.5 text-xs text-muted-foreground hover:text-foreground md:hidden shrink-0 cursor-pointer"
               onClick={() => setIsMobileSidebarOpen(true)}
               title="Open knowledge base"
             >
-              <Menu className="h-4 w-4" />
+              <Menu className="h-4 w-4 text-primary" />
+              <span>Docs</span>
+              {selectedDocIds.length > 0 && (
+                <span className="h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center font-bold">
+                  {selectedDocIds.length}
+                </span>
+              )}
             </Button>
 
             <div className="flex items-center gap-2 min-w-0 truncate">
-              <span className="font-semibold text-sm text-foreground truncate">
-                DocuMind
+              <span className="font-semibold text-sm text-foreground truncate flex items-center gap-1.5">
+                <Sparkles className="h-4 w-4 text-primary hidden sm:inline" />
+                DocuMind Chat
               </span>
-              <span className="text-muted-foreground text-xs">•</span>
+              <span className="text-muted-foreground text-xs hidden sm:inline">•</span>
               <span className="text-xs text-muted-foreground truncate hidden sm:inline">
                 {selectedDocIds.length === 0 ? (
                   <span className="text-muted-foreground">
@@ -200,7 +214,7 @@ export function ChatView() {
                 size="sm"
                 onClick={clearMessages}
                 disabled={isStreaming}
-                className="text-xs h-8 gap-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                className="text-xs h-8 gap-1.5 text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
                 title="Start new conversation"
               >
                 <Plus className="h-3.5 w-3.5" />
@@ -233,5 +247,6 @@ export function ChatView() {
         />
       </div>
     </div>
+  </div>
   );
 }

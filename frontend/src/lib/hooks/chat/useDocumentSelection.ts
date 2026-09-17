@@ -43,7 +43,7 @@ export function useDocumentSelection(documents: DocumentInfo[] = []) {
     return documents.filter((doc) => {
       const matchesSearch =
         searchQuery.trim() === "" ||
-        doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (doc.name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
         doc.originalFileName.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStatus =

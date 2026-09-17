@@ -30,17 +30,11 @@ export type StreamEvent =
   | { type: "done" }
   | { type: "error"; message: string };
 
-export type DocumentStatus = "UPLOADED" | "PROCESSING" | "READY" | "FAILED";
+import type { DocumentItem, DocumentStatus } from "@/components/dashboard/types";
 
-export interface DocumentInfo {
-  _id: string;
-  name: string;
-  originalFileName: string;
-  cloudinaryUrl?: string;
-  mimeType: string;
-  size: number;
-  status: DocumentStatus;
-  createdAt: string;
+export type { DocumentStatus };
+
+export interface DocumentInfo extends DocumentItem {
   pageCount?: number | null;
   chunkCount?: number | null;
   failureReason?: string | null;

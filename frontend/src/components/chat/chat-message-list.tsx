@@ -21,7 +21,7 @@ import type { ChatMessage } from "@/types/chat";
 interface ChatMessageListProps {
   messages: ChatMessage[];
   isStreaming: boolean;
-  selectedDocuments: { _id: string; originalFileName?: string; name: string }[];
+  selectedDocuments: { _id: string; originalFileName?: string; name?: string }[];
   onSelectPrompt: (promptText: string) => void;
   onRegenerate: () => void;
   userName?: string;

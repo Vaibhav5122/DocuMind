@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/api/axiosClient";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { DocumentInfo } from "@/types/chat";
 
 // Centralized Query Keys
 export const documentKeys = {
@@ -11,17 +12,17 @@ export const documentKeys = {
 
 // 1. Fetch all documents with live polling for processing states
 export function useGetAllDocument() {
-  return useQuery({
+  return useQuery<DocumentInfo[]>({
     queryKey: documentKeys.lists(),
     queryFn: async () => {
       const response = await apiClient.get("/documents");
-      return (response.data?.data || []) as any[];
+      return (response.data?.data || []) as DocumentInfo[];
     },
     refetchInterval: (query) => {
       const docs = query.state.data;
       const hasProcessing =
         Array.isArray(docs) &&
-        docs.some((doc: any) => doc.status === "PROCESSING");
+        docs.some((doc) => doc.status === "PROCESSING");
       return hasProcessing ? 4000 : false;
     },
     staleTime: 1000 * 60 * 3, // Data stays fresh for 3 minutes
@@ -62,8 +63,10 @@ export function usePostDocument() {
       toast.success("Document uploaded successfully");
       queryClient.invalidateQueries({ queryKey: documentKeys.lists() });
     },
-    onError: (error: any) => {
-      const msg = error.response?.data?.message || "Failed to upload document";
+    onError: (error: unknown) => {
+      const msg =
+        (error as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message || "Failed to upload document";
       toast.error(msg);
     },
   });
@@ -84,7 +87,7 @@ export function useDeleteDocument() {
       await queryClient.cancelQueries({ queryKey: documentKeys.lists() });
 
       // Snapshot the previous documents list
-      const previousDocuments = queryClient.getQueryData<any[]>(
+      const previousDocuments = queryClient.getQueryData<DocumentInfo[]>(
         documentKeys.lists(),
       );
 
@@ -99,14 +102,16 @@ export function useDeleteDocument() {
       return { previousDocuments };
     },
     // If the server returns an error, roll back to snapshot
-    onError: (error: any, _deletedId, context) => {
+    onError: (error: unknown, _deletedId, context) => {
       if (context?.previousDocuments) {
         queryClient.setQueryData(
           documentKeys.lists(),
           context.previousDocuments,
         );
       }
-      const msg = error.response?.data?.message || "Failed to delete document";
+      const msg =
+        (error as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message || "Failed to delete document";
       toast.error(msg);
     },
     onSuccess: () => {

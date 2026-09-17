@@ -11,7 +11,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { usePostDocument } from "@/lib/hooks/dashboard/useDocuments";
+import { useUploadDocument } from "@/lib/hooks/chat/useChatDocuments";
 import { validateFile, ALLOWED_EXTENSIONS } from "@/lib/validations/fileValidation";
 import { toast } from "sonner";
 import type { ReferencedDoc } from "@/types/chat";
@@ -39,10 +39,11 @@ export function ChatInput({
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isLocalUploading, setIsLocalUploading] = useState(false);
   const [uploadingFileName, setUploadingFileName] = useState<string>("");
 
-  const { mutate: uploadDocument } = usePostDocument();
+  const { uploadDocument, isPending: isMutationPending } = useUploadDocument();
+  const isUploading = isLocalUploading || isMutationPending;
 
   // Auto-resize textarea
   useEffect(() => {
@@ -87,12 +88,12 @@ export function ChatInput({
       return;
     }
 
-    setIsUploading(true);
+    setIsLocalUploading(true);
     setUploadingFileName(file.name);
 
     uploadDocument(file, {
       onSuccess: (res: { data?: { id?: string; _id?: string } }) => {
-        setIsUploading(false);
+        setIsLocalUploading(false);
         setUploadingFileName("");
         if (fileInputRef.current) fileInputRef.current.value = "";
         toast.success(`"${file.name}" uploaded and attached!`);
@@ -103,21 +104,25 @@ export function ChatInput({
           onDocumentUploaded(docId, file.name);
         }
       },
-      onError: () => {
-        setIsUploading(false);
+      onError: (err: unknown) => {
+        setIsLocalUploading(false);
         setUploadingFileName("");
         if (fileInputRef.current) fileInputRef.current.value = "";
+        const msg =
+          (err as { response?: { data?: { message?: string } } })?.response
+            ?.data?.message || "Failed to upload document";
+        toast.error(msg);
       },
     });
   };
 
   return (
-    <div className="p-4 bg-background/80 backdrop-blur-md border-t border-border/80">
+    <div className="p-2.5 sm:p-4 bg-background/90 backdrop-blur-md border-t border-border/80">
       <div className="max-w-3xl mx-auto space-y-2">
         {/* Active Attached Documents Chips */}
         {(selectedDocuments.length > 0 || isUploading) && (
-          <div className="flex flex-wrap items-center gap-1.5 px-1 py-1">
-            <span className="text-[11px] text-muted-foreground font-medium mr-1 flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-1.5 px-1 py-0.5 max-h-24 overflow-y-auto">
+            <span className="text-[11px] text-muted-foreground font-medium mr-1 flex items-center gap-1 shrink-0">
               <Sparkles className="h-3 w-3 text-primary" />
               Referencing:
             </span>
@@ -209,10 +214,10 @@ export function ChatInput({
                 type="button"
                 size="icon"
                 onClick={onStop}
-                className="h-8 w-8 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-transform active:scale-95 shadow-xs"
+                className="h-8 w-8 rounded-full border border-border/80 bg-foreground text-background hover:bg-foreground/90 transition-all active:scale-95 shadow-xs cursor-pointer flex items-center justify-center"
                 title="Stop generation"
               >
-                <Square className="h-3.5 w-3.5 fill-current" />
+                <Square className="h-3 w-3 fill-current rounded-xs" />
               </Button>
             ) : (
               <Button
