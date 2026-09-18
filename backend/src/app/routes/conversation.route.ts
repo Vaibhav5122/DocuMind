@@ -11,3 +11,12 @@ conversationRouter
   .route("/")
   .get(conversationController.getAllConversation.bind(conversationController))
   .post(conversationController.createConversation.bind(conversationController));
+
+conversationRouter
+  .route("/:conversationId")
+  .get(conversationController.getConversationById.bind(conversationController));
+conversationRouter
+  .route("/:conversationId")
+  .delete(
+    conversationController.deleteConversation.bind(conversationController),
+  );
