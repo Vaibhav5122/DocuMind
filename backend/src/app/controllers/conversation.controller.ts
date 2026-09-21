@@ -3,7 +3,6 @@ import { ApiError } from "../utils/ApiError.js";
 import { Conversation } from "../models/conversation.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
-import { APIError } from "better-auth";
 import { Message } from "../models/message.model.js";
 
 export class ConversationController {
