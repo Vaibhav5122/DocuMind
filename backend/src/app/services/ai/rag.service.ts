@@ -1,6 +1,7 @@
 import { Message } from "../../models/message.model.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { searchDocumentChunks } from "../pinecone/search.service.js";
+import { generateAnswerStream } from "./openrouter.service.js";
 
 export interface AskDocumentInput {
   query: string;
@@ -108,5 +109,38 @@ export async function prepareRagContext({
     prompt,
     SYSTEM_PROMPT,
     citations,
+  };
+}
+
+export async function askDocumentsStream({
+  query,
+  documentId,
+  userId,
+  conversationId,
+}: AskDocumentInput) {
+  const result = await prepareRagContext({
+    query,
+    documentId,
+    userId,
+    conversationId,
+  });
+
+  if (result.noResult) {
+    return {
+      stream: null,
+      citations: [],
+      noResult: true,
+    };
+  }
+
+  const stream = generateAnswerStream({
+    prompt: result.prompt!,
+    SYSTEM_PROMPT: result.SYSTEM_PROMPT,
+  });
+
+  return {
+    stream,
+    citations: result.citations,
+    noResult: false,
   };
 }
