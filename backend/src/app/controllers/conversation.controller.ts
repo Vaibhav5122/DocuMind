@@ -61,13 +61,13 @@ export class ConversationController {
     if (!conversation) {
       throw ApiError.notFound("Conversation not found");
     }
-    const message = await Message.find({ conversationId })
+    const messages = await Message.find({ conversationId })
       .sort({ createdAt: 1 })
       .lean();
 
     return ApiResponse.ok(res, "Conversation fetched", {
       conversation,
-      message,
+      messages,
     });
   }
 

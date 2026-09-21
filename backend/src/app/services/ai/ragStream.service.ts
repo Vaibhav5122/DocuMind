@@ -5,11 +5,13 @@ export async function askDocumentsStream({
   query,
   documentId,
   userId,
+  conversationId,
 }: AskDocumentInput) {
   const result = await prepareRagContext({
     query,
     documentId,
     userId,
+    conversationId,
   });
 
   if (result.noResult) {
