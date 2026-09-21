@@ -3,7 +3,6 @@ import { ApiError } from "../utils/ApiError.js";
 import { Conversation } from "../models/conversation.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
-import { APIError } from "better-auth";
 import { Message } from "../models/message.model.js";
 
 export class ConversationController {
@@ -62,13 +61,13 @@ export class ConversationController {
     if (!conversation) {
       throw ApiError.notFound("Conversation not found");
     }
-    const message = await Message.find({ conversationId })
+    const messages = await Message.find({ conversationId })
       .sort({ createdAt: 1 })
       .lean();
 
     return ApiResponse.ok(res, "Conversation fetched", {
       conversation,
-      message,
+      messages,
     });
   }
 

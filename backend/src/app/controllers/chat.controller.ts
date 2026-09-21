@@ -3,6 +3,9 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { askDocuments } from "../services/ai/ragNonStream.service.js";
 import { askDocumentsStream } from "../services/ai/ragStream.service.js";
+import mongoose from "mongoose";
+import { Conversation } from "../models/conversation.model.js";
+import { Message } from "../models/message.model.js";
 
 export class ChatController {
   public async chatWithDocument(req: Request, res: Response) {
@@ -11,9 +14,37 @@ export class ChatController {
     if (!userId) {
       return ApiError.unauthorized("Authentication required");
     }
-    const { query, documentId } = req.body;
+    const { query, documentId, conversationId } = req.body;
 
-    const result = await askDocuments({ query, documentId, userId });
+    if (!conversationId || !mongoose.isValidObjectId(conversationId)) {
+      throw ApiError.badRequest("Valid conversationId required");
+    }
+
+    if (!query || query.trim().length === 0) {
+      throw ApiError.badRequest("Question is required");
+    }
+
+    const conversation = await Conversation.findOne({
+      _id: conversationId,
+      userId,
+    });
+
+    if (!conversation) {
+      throw ApiError.notFound("Conversation not found");
+    }
+
+    await Message.create({
+      conversationId,
+      role: "USER",
+      content: query.trim(),
+    });
+
+    const result = await askDocuments({
+      query,
+      documentId,
+      userId,
+      conversationId,
+    });
 
     return ApiResponse.ok(res, "Answer generated", result);
   }
@@ -24,7 +55,30 @@ export class ChatController {
     if (!userId) {
       return ApiError.unauthorized("Authentication required");
     }
-    const { query, documentId } = req.body;
+    const { query, documentId, conversationId } = req.body;
+
+    if (!conversationId || !mongoose.isValidObjectId(conversationId)) {
+      throw ApiError.badRequest("Valid conversationId required");
+    }
+
+    if (!query || query.trim().length === 0) {
+      throw ApiError.badRequest("Question is required");
+    }
+
+    const conversation = await Conversation.findOne({
+      _id: conversationId,
+      userId,
+    });
+
+    if (!conversation) {
+      throw ApiError.notFound("Conversation not found");
+    }
+
+    await Message.create({
+      conversationId,
+      role: "USER",
+      content: query.trim(),
+    });
 
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
@@ -32,7 +86,12 @@ export class ChatController {
     res.flushHeaders();
 
     try {
-      const result = await askDocumentsStream({ query, documentId, userId });
+      const result = await askDocumentsStream({
+        query: query.trim(),
+        documentId,
+        userId,
+        conversationId,
+      });
       if (result.noResult) {
         res.write(
           `data: ${JSON.stringify({
@@ -51,7 +110,9 @@ export class ChatController {
         })}\n\n`,
       );
 
+      let completeAnswer = "";
       for await (const token of result.stream!) {
+        completeAnswer += token;
         res.write(
           `data: ${JSON.stringify({
             type: "token",
@@ -59,6 +120,25 @@ export class ChatController {
           })}\n\n`,
         );
       }
+
+      await Message.create({
+        conversationId,
+        role: "ASSISTANT",
+        content: completeAnswer,
+        citations: result.citations,
+      });
+
+      await Conversation.updateOne(
+        {
+          _id: conversationId,
+          userId,
+        },
+        {
+          $set: {
+            updatedAt: new Date(),
+          },
+        },
+      );
 
       res.write(
         `data: ${JSON.stringify({
