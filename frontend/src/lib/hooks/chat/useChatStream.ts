@@ -1,19 +1,34 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import type { ChatMessage, ReferencedDoc, StreamEvent } from "@/types/chat";
 import { toast } from "sonner";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
-export function useChatStream() {
+export interface UseChatStreamOptions {
+  conversationId?: string | null;
+  onConversationCreated?: (conversationId: string, title: string) => void;
+}
+
+export function useChatStream(options?: UseChatStreamOptions) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState<boolean>(false);
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  const conversationIdRef = useRef<string | null | undefined>(options?.conversationId);
+  const onConversationCreatedRef = useRef(options?.onConversationCreated);
+
+  useEffect(() => {
+    conversationIdRef.current = options?.conversationId;
+  }, [options?.conversationId]);
+
+  useEffect(() => {
+    onConversationCreatedRef.current = options?.onConversationCreated;
+  }, [options?.onConversationCreated]);
 
   const stopStreaming = useCallback(() => {
     if (abortControllerRef.current) {
@@ -27,6 +42,12 @@ export function useChatStream() {
   const clearMessages = useCallback(() => {
     stopStreaming();
     setMessages([]);
+    setError(null);
+  }, [stopStreaming]);
+
+  const loadMessages = useCallback((historyMessages: ChatMessage[]) => {
+    stopStreaming();
+    setMessages(historyMessages);
     setError(null);
   }, [stopStreaming]);
 
@@ -85,6 +106,7 @@ export function useChatStream() {
           body: JSON.stringify({
             query: trimmedQuery,
             documentId: documentIdPayload,
+            conversationId: conversationIdRef.current || undefined,
           }),
         });
 
@@ -126,7 +148,12 @@ export function useChatStream() {
             try {
               const event: StreamEvent = JSON.parse(jsonStr);
 
-              if (event.type === "citations") {
+              if (event.type === "conversation") {
+                onConversationCreatedRef.current?.(
+                  event.conversationId,
+                  event.title,
+                );
+              } else if (event.type === "citations") {
                 setMessages((prev) =>
                   prev.map((msg) =>
                     msg.id === assistantMessageId
@@ -257,6 +284,8 @@ export function useChatStream() {
 
   return {
     messages,
+    setMessages,
+    loadMessages,
     isStreaming,
     isThinking,
     error,

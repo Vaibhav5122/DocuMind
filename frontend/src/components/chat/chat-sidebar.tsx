@@ -10,7 +10,7 @@ import {
   AlertCircle,
   UploadCloud,
   Check,
-  PanelLeftClose,
+  PanelRightClose,
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -58,7 +58,7 @@ export function ChatSidebar({
   onMobileClose,
 }: ChatSidebarProps) {
   const content = (
-    <div className="flex flex-col h-full bg-card border-r border-border text-card-foreground">
+    <div className="flex flex-col h-full bg-card border-l border-border text-card-foreground">
       {/* Sidebar Header */}
       <div className="p-3.5 border-b border-border space-y-3">
         <div className="flex items-center justify-between">
@@ -68,7 +68,9 @@ export function ChatSidebar({
               Knowledge Base
             </h2>
             <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-              {documents.length}
+              {selectedDocIds.length > 0
+                ? `${selectedDocIds.length}/${documents.length}`
+                : documents.length}
             </span>
           </div>
 
@@ -76,11 +78,11 @@ export function ChatSidebar({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground hidden md:flex"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground hidden md:flex cursor-pointer"
               onClick={onToggleOpen}
-              title="Collapse sidebar"
+              title="Collapse knowledge base"
             >
-              <PanelLeftClose className="h-4 w-4" />
+              <PanelRightClose className="h-4 w-4" />
             </Button>
             {onMobileClose && (
               <Button
@@ -254,14 +256,14 @@ export function ChatSidebar({
         <div className="w-80 h-full">{content}</div>
       </aside>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer (from right side) */}
       {isMobileOpen && (
-        <div className="fixed inset-0 z-50 md:hidden flex">
+        <div className="fixed inset-0 z-50 md:hidden flex justify-end">
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-background/80 backdrop-blur-xs transition-opacity"
             onClick={onMobileClose}
           />
-          <div className="relative w-80 max-w-[85vw] h-full shadow-2xl z-10">
+          <div className="relative w-80 max-w-[85vw] h-full shadow-2xl z-10 animate-in slide-in-from-right duration-200">
             {content}
           </div>
         </div>

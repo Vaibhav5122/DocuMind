@@ -4,26 +4,28 @@ import { Conversation } from "../models/conversation.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
 import { Message } from "../models/message.model.js";
+import { generateConversationTitle } from "../utils/titleGenerator.js";
 
 export class ConversationController {
   public async createConversation(req: Request, res: Response) {
     const userId = req.user?.id;
 
     if (!userId) {
-      throw ApiError.unauthorized("Authentiaction required");
+      throw ApiError.unauthorized("Authentication required");
     }
 
-    const { title } = req.body;
+    const { title, query } = req.body;
 
-    if (!title || title?.trim() === "") {
-      throw ApiError.badRequest("Conversation Title is required");
-    }
+    const resolvedTitle =
+      title && typeof title === "string" && title.trim() !== ""
+        ? title.trim()
+        : generateConversationTitle(query);
 
     const conversation = await Conversation.create({
       userId,
-      title,
+      title: resolvedTitle,
     });
-    return ApiResponse.created(res, "Conversation title created", conversation);
+    return ApiResponse.created(res, "Conversation created", conversation);
   }
 
   public async getAllConversation(req: Request, res: Response) {

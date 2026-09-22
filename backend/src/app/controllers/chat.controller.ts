@@ -6,6 +6,7 @@ import { askDocumentsStream } from "../services/ai/ragStream.service.js";
 import mongoose from "mongoose";
 import { Conversation } from "../models/conversation.model.js";
 import { Message } from "../models/message.model.js";
+import { generateConversationTitle } from "../utils/titleGenerator.js";
 
 export class ChatController {
   public async chatWithDocument(req: Request, res: Response) {
@@ -16,25 +17,42 @@ export class ChatController {
     }
     const { query, documentId, conversationId } = req.body;
 
-    if (!conversationId || !mongoose.isValidObjectId(conversationId)) {
-      throw ApiError.badRequest("Valid conversationId required");
-    }
-
     if (!query || query.trim().length === 0) {
       throw ApiError.badRequest("Question is required");
     }
 
-    const conversation = await Conversation.findOne({
-      _id: conversationId,
-      userId,
-    });
+    let activeConversationId = conversationId;
+    let title = "";
 
-    if (!conversation) {
-      throw ApiError.notFound("Conversation not found");
+    if (activeConversationId && mongoose.isValidObjectId(activeConversationId)) {
+      const conversation = await Conversation.findOne({
+        _id: activeConversationId,
+        userId,
+      });
+
+      if (!conversation) {
+        throw ApiError.notFound("Conversation not found");
+      }
+      title = conversation.title;
+      if (title === "New Chat") {
+        title = generateConversationTitle(query.trim());
+        await Conversation.updateOne(
+          { _id: activeConversationId, userId },
+          { $set: { title } },
+        );
+      }
+    } else {
+      // Auto-create conversation with title from query
+      title = generateConversationTitle(query.trim());
+      const newConversation = await Conversation.create({
+        userId,
+        title,
+      });
+      activeConversationId = newConversation._id.toString();
     }
 
     await Message.create({
-      conversationId,
+      conversationId: activeConversationId,
       role: "USER",
       content: query.trim(),
     });
@@ -43,10 +61,14 @@ export class ChatController {
       query,
       documentId,
       userId,
-      conversationId,
+      conversationId: activeConversationId,
     });
 
-    return ApiResponse.ok(res, "Answer generated", result);
+    return ApiResponse.ok(res, "Answer generated", {
+      ...result,
+      conversationId: activeConversationId,
+      title,
+    });
   }
 
   //Chat with Stream response
@@ -57,25 +79,42 @@ export class ChatController {
     }
     const { query, documentId, conversationId } = req.body;
 
-    if (!conversationId || !mongoose.isValidObjectId(conversationId)) {
-      throw ApiError.badRequest("Valid conversationId required");
-    }
-
     if (!query || query.trim().length === 0) {
       throw ApiError.badRequest("Question is required");
     }
 
-    const conversation = await Conversation.findOne({
-      _id: conversationId,
-      userId,
-    });
+    let activeConversationId = conversationId;
+    let title = "";
 
-    if (!conversation) {
-      throw ApiError.notFound("Conversation not found");
+    if (activeConversationId && mongoose.isValidObjectId(activeConversationId)) {
+      const conversation = await Conversation.findOne({
+        _id: activeConversationId,
+        userId,
+      });
+
+      if (!conversation) {
+        throw ApiError.notFound("Conversation not found");
+      }
+      title = conversation.title;
+      if (title === "New Chat") {
+        title = generateConversationTitle(query.trim());
+        await Conversation.updateOne(
+          { _id: activeConversationId, userId },
+          { $set: { title } },
+        );
+      }
+    } else {
+      // Auto-create conversation with title from query
+      title = generateConversationTitle(query.trim());
+      const newConversation = await Conversation.create({
+        userId,
+        title,
+      });
+      activeConversationId = newConversation._id.toString();
     }
 
     await Message.create({
-      conversationId,
+      conversationId: activeConversationId,
       role: "USER",
       content: query.trim(),
     });
@@ -85,12 +124,21 @@ export class ChatController {
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
+    // Emit conversation metadata event immediately so frontend gets the conversationId
+    res.write(
+      `data: ${JSON.stringify({
+        type: "conversation",
+        conversationId: activeConversationId,
+        title,
+      })}\n\n`,
+    );
+
     try {
       const result = await askDocumentsStream({
         query: query.trim(),
         documentId,
         userId,
-        conversationId,
+        conversationId: activeConversationId,
       });
       if (result.noResult) {
         res.write(
@@ -122,7 +170,7 @@ export class ChatController {
       }
 
       await Message.create({
-        conversationId,
+        conversationId: activeConversationId,
         role: "ASSISTANT",
         content: completeAnswer,
         citations: result.citations,
@@ -130,7 +178,7 @@ export class ChatController {
 
       await Conversation.updateOne(
         {
-          _id: conversationId,
+          _id: activeConversationId,
           userId,
         },
         {

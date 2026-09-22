@@ -24,7 +24,15 @@ export interface ChatMessage {
   createdAt: number;
 }
 
+export interface ConversationItem {
+  _id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type StreamEvent =
+  | { type: "conversation"; conversationId: string; title: string }
   | { type: "citations"; citations: Citation[] }
   | { type: "token"; text: string }
   | { type: "done" }
