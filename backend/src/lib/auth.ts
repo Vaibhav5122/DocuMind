@@ -17,7 +17,10 @@ export const auth = betterAuth({
   },
 
   baseURL: envZod.BETTER_AUTH_URL,
-  trustedOrigins: [envZod.FRONTEND_URL],
+  trustedOrigins: [
+    envZod.FRONTEND_URL.replace(/\/$/, ""),
+    "http://localhost:3000",
+  ],
 
   emailAndPassword: {
     enabled: true,
