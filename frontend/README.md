@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DocuMind Frontend Application
 
-## Getting Started
+Modern, high-performance user interface for **DocuMind** built with **Next.js 16.3 (App Router)**, **React 19**, and **Tailwind CSS v4**.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🎨 UI Architecture & Feature Highlights
+
+- **Real-Time Streaming Chat View**: Consumes Server-Sent Events (`text/event-stream`) with `ReadableStream` reader, auto-scrolling, and Markdown code syntax rendering.
+- **Dynamic AI Conversation Titling**: Automatically summarizes first user queries into concise 3-5 word titles.
+- **Enterprise Document Dashboard**:
+  - Filterable document catalog (Processing, Ready, Failed).
+  - Document upload modal with drag-and-drop validation.
+  - In-browser document preview modal.
+- **Edge Route Protection**: Next.js Edge Middleware (`src/middleware.ts`) intercepts route access, redirecting unauthenticated traffic to `/login?callbackUrl=...` and authenticated sessions away from auth pages.
+- **Dark/Light Theme**: Powered by `next-themes` and Tailwind CSS v4 design tokens.
+- **Custom Branding**: Dedicated vector logo (`DocuMindLogo`), Next.js App Router native favicon (`app/icon.svg`), and custom 404 page (`app/not-found.tsx`).
+
+---
+
+## 🔍 SEO & Search Engine Optimization
+
+DocuMind is fully optimized for Google search and social discovery:
+
+- **Dynamic Metadata**: Complete OpenGraph, Twitter card, canonical tags, and granular Googlebot directives configured in `app/layout.tsx`.
+- **Dynamic OpenGraph Card**: Edge `ImageResponse` generator (`app/opengraph-image.tsx`) automatically creates 1200x630 branded social cards.
+- **Robots.txt (`app/robots.ts`)**: Crawls landing page and auth pages while protecting private dashboard and chat paths from public indexes.
+- **XML Sitemap (`app/sitemap.ts`)**: Generates fresh sitemap with change frequencies and priorities.
+
+---
+
+## 📁 Directory Structure
+
+```
+frontend/src/
+├── app/
+│   ├── (auth)/               # Auth routes (login, signup) with layouts & metadata
+│   ├── (dashboard)/          # Authenticated routes (dashboard, chat) with navbar layout
+│   ├── favicon.ico           # Legacy favicon fallback
+│   ├── globals.css           # Tailwind CSS v4 theme variables
+│   ├── icon.svg              # Next.js App Router native vector favicon
+│   ├── layout.tsx            # Root layout with comprehensive SEO metadata & fonts
+│   ├── not-found.tsx         # High-tech 404 error page with Home & Back navigation
+│   ├── opengraph-image.tsx   # Dynamic 1200x630 social preview image generator
+│   ├── page.tsx              # High-conversion landing page
+│   ├── robots.ts             # Dynamic robots.txt generator
+│   └── sitemap.ts            # Dynamic sitemap.xml generator
+├── components/
+│   ├── auth/                 # Avatar dropdowns, auth forms
+│   ├── chat/                 # Streaming chat view, history sidebar, markdown renderer
+│   ├── dashboard/            # Document tables, status badges, upload dialogs, stats
+│   ├── home/                 # Bento grid feature sections
+│   └── ui/                   # Button, Card, Dialog, Table, and DocuMindLogo
+├── lib/
+│   ├── api/                  # Axios client (withCredentials)
+│   ├── auth-client.ts        # BetterAuth React client
+│   ├── hooks/                # Custom React Query hooks (useDocuments, useChatStream)
+│   ├── providers/            # QueryClientProvider & ThemeProvider
+│   └── utils.ts
+└── middleware.ts             # Next.js Edge route guard middleware
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Local Development
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Install dependencies
+pnpm install
 
-## Learn More
+# Setup local environment
+cp .env.example .env.local
 
-To learn more about Next.js, take a look at the following resources:
+# Run development server
+pnpm dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🌐 Vercel Production Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Push your code to GitHub.
+2. Go to [Vercel Dashboard](https://vercel.com/dashboard) and click **Add New > Project**.
+3. Import your `DocuMind` repository.
+4. Set the **Root Directory** to `frontend`.
+5. Verify the **Framework Preset** is set to `Next.js`.
+6. Add the production environment variables:
+   - `NEXT_PUBLIC_API_BASE_URL`: The URL of your deployed Render backend (e.g. `https://documind-api.onrender.com`)
+   - `NEXT_PUBLIC_APP_URL`: Your Vercel frontend URL (e.g. `https://documind-ai.vercel.app`)
+7. Click **Deploy**.
