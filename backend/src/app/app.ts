@@ -13,14 +13,28 @@ import { functions } from "../inngest/index.js";
 import { chatRouter } from "./routes/chat.route.js";
 import { conversationRouter } from "./routes/conversation.route.js";
 
+import { envZod } from "../common/envSanitization.js";
+
 export async function expressApplication(): Promise<Application> {
   const app = express();
 
+  const allowedOrigins = [
+    "http://localhost:3000",
+    envZod.FRONTEND_URL.replace(/\/$/, ""),
+  ];
+
   app.use(
     cors({
-      origin: "http://localhost:3000",
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const cleanOrigin = origin.replace(/\/$/, "");
+        if (allowedOrigins.includes(cleanOrigin) || process.env.NODE_ENV !== "production") {
+          return callback(null, true);
+        }
+        return callback(new Error(`Origin ${origin} not allowed by CORS`));
+      },
       credentials: true,
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     }),
   );
 
