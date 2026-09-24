@@ -1,0 +1,54 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="documind-grad-primary" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#10B981" />
+      <stop offset="50%" stopColor="#06B6D4" />
+      <stop offset="100%" stopColor="#3B82F6" />
+    </linearGradient>
+    <linearGradient id="documind-grad-fold" x1="28" y1="4" x2="40" y2="16" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#34D399" />
+      <stop offset="100%" stopColor="#059669" />
+    </linearGradient>
+    <linearGradient id="documind-grad-neural" x1="12" y1="20" x2="36" y2="38" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#38BDF8" />
+      <stop offset="100%" stopColor="#10B981" />
+    </linearGradient>
+  </defs>
+
+  <!-- Document Base Card -->
+  <path
+    d="M10 6C10 4.89543 10.8954 4 12 4H28L40 16V42C40 43.1046 39.1046 44 38 44H12C10.8954 44 10 43.1046 10 42V6Z"
+    fill="#0B132B"
+    stroke="url(#documind-grad-primary)"
+    stroke-width="2.5"
+    stroke-linejoin="round"
+  />
+
+  <!-- Document Folded Corner -->
+  <path
+    d="M28 4V14C28 15.1046 28.8954 16 30 16H40"
+    fill="url(#documind-grad-fold)"
+    fill-opacity="0.35"
+    stroke="url(#documind-grad-primary)"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Neural Network Circuit Pathways -->
+  <path
+    d="M17 25H23M23 25L28 20M23 25L27 31M28 20H33M27 31H33"
+    stroke="url(#documind-grad-neural)"
+    stroke-width="2.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Neural Nodes -->
+  <circle cx="17" cy="25" r="2.2" fill="#10B981" />
+  <circle cx="23" cy="25" r="2.4" fill="#06B6D4" />
+  <circle cx="28" cy="20" r="2" fill="#38BDF8" />
+  <circle cx="27" cy="31" r="2" fill="#10B981" />
+  <circle cx="33" cy="20" r="2.2" fill="#60A5FA" />
+  <circle cx="33" cy="31" r="2.2" fill="#34D399" />
+</svg>
