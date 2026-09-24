@@ -1,6 +1,7 @@
 import Link from "next/link";
 import NavbarDemo from "@/components/resizable-navbar-demo";
 import { FeaturesBentoSection } from "@/components/home/bento-grid";
+import { DocuMindLogo } from "@/components/ui/logo";
 import {
   ArrowRight,
   Sparkles,
@@ -298,11 +299,10 @@ export default function Home() {
 
       {/* Modern Footer */}
       <footer className="py-10 border-t border-border/80 text-center text-xs text-muted-foreground space-y-2">
-        <div className="flex items-center justify-center gap-2 font-bold text-foreground">
-          <FileText className="h-4 w-4 text-emerald-500" />
-          <span>DocuMind</span>
+        <div className="flex items-center justify-center gap-2">
+          <DocuMindLogo size={24} showText={true} textClassName="text-base" />
         </div>
-        <p>© 2026 DocuMind AI. Grounded document comprehension & vector intelligence.</p>
+        <p>© 2026 DocuMind AI. Grounded enterprise document comprehension & vector intelligence.</p>
       </footer>
     </div>
   );
