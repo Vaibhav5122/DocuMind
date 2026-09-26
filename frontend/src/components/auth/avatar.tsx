@@ -19,7 +19,7 @@ import Link from "next/link";
 
 export function DropdownMenuAvatar() {
   const router = useRouter();
-  const { data: sessionData, isError, isLoading } = useCurrentSession();
+  const { data: sessionData, isLoading } = useCurrentSession();
   const { mutate: logout, isPending: loggingOut } = useSignOut();
 
   if (isLoading) {

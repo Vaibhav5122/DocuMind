@@ -1,16 +1,15 @@
-import About from "@/components/about";
+import type { Metadata } from "next";
 import { DashboardContent } from "@/components/dashboard/dashboard";
-import NavbarDemo from "@/components/resizable-navbar-demo";
-import { ModeToggle } from "@/components/ui/mode-toggle";
 
-const Dashboard = () => {
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Manage your uploaded documents, view vector indexing status, and inspect file analytics.",
+};
+
+export default function DashboardPage() {
   return (
-    <div>
-      {/* <NavbarDemo /> */}
-      {/* <About /> */}
+    <div className="w-full">
       <DashboardContent />
     </div>
   );
-};
-
-export default Dashboard;
+}
